@@ -26,6 +26,12 @@
   --maxread:40rem;
 }
 *{box-sizing:border-box;}
+/* Several components below set display:flex on classes toggled via the
+   `hidden` attribute (consent banner, subscribe/contact success+error
+   states) — same specificity as the UA stylesheet's [hidden]{display:none},
+   so the author rule would otherwise win and the element stays visible.
+   This keeps `hidden` authoritative everywhere, as it should be. */
+[hidden]{display:none !important;}
 html{scroll-behavior:smooth;}
 body{
   margin:0;background:var(--lienzo);color:var(--tinta);
@@ -202,7 +208,8 @@ body.rail .main{margin-left:var(--rail-w);}
 .cap{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:30px;font-family:var(--read);}
 .prose{font-family:var(--read);font-size:1.21rem;line-height:1.78;color:#332b3c;}
 .prose p{margin:0 0 1.45em;}
-.prose > p:first-of-type:first-letter{font-family:var(--display);font-weight:600;float:left;font-size:3.7em;line-height:.78;padding:6px 12px 0 0;color:var(--berenjena);}
+/* drop cap is an article-reading device, not generic .prose typography — scoped so legal-page prose doesn't get it too */
+.article .prose > p:first-of-type:first-letter{font-family:var(--display);font-weight:600;float:left;font-size:3.7em;line-height:.78;padding:6px 12px 0 0;color:var(--berenjena);}
 .prose h2{font-family:var(--display);font-weight:600;font-size:1.7rem;line-height:1.15;margin:1.6em 0 .5em;color:var(--tinta);}
 .prose h3{font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.2;margin:1.4em 0 .5em;color:var(--tinta);}
 .prose blockquote{font-family:var(--display);font-style:italic;font-weight:500;font-size:1.65rem;line-height:1.25;color:var(--berenjena);border-left:4px solid var(--ambar);padding:6px 0 6px 22px;margin:1.4em 0;}
@@ -299,6 +306,17 @@ body.rail .main{margin-left:var(--rail-w);}
 }
 :focus-visible{outline:2px solid var(--berenjena);outline-offset:2px;border-radius:4px;}
 
+.skip-link{position:fixed;top:-100px;left:12px;z-index:200;background:var(--tinta);color:var(--lienzo);padding:10px 16px;border-radius:0 0 10px 10px;font-size:.85rem;font-weight:600;transition:top .15s ease;}
+.skip-link:focus{top:0;}
+
 /* overlay used only for the mobile nav backdrop now (cart/modal overlay removed) */
 .overlay{position:fixed;inset:0;background:rgba(43,36,52,.45);backdrop-filter:blur(2px);z-index:59;opacity:0;visibility:hidden;transition:.25s;}
 .overlay.show{opacity:1;visibility:visible;}
+
+/* consent banner (CMP) — Meta Pixel is gated behind this, never fires pre-consent */
+.consent-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:100;max-width:640px;margin:0 auto;background:var(--berenjena);color:var(--lienzo);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;}
+.consent-banner p{margin:0;font-size:.88rem;line-height:1.5;color:#e7dcef;flex:1;min-width:220px;}
+.consent-banner a{color:var(--ambar);text-decoration:underline;}
+.consent-actions{display:flex;gap:8px;flex-shrink:0;}
+.consent-actions .btn-line{border-color:rgba(255,249,241,.3);color:var(--lienzo);padding:9px 16px;font-size:.85rem;}
+.consent-actions .btn-amber{padding:9px 16px;font-size:.85rem;}

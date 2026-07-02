@@ -4,10 +4,6 @@ export const prerender = true;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SubscribeForm from "../components/SubscribeForm.astro";
 import SecondaryChannelButton from "../components/SecondaryChannelButton.astro";
-
-const params = Astro.url.searchParams;
-const success = params.get("ok") === "1";
-const error = params.get("ok") === "0";
 ---
 
 <BaseLayout
@@ -21,7 +17,7 @@ const error = params.get("ok") === "0";
   </div>
   <div class="wrap section">
     <div class="form">
-      <SubscribeForm source="unete" success={success} error={error} />
+      <SubscribeForm source="unete" />
     </div>
     <div class="note" style="margin-top:10px">
       <span>ℹ️</span>

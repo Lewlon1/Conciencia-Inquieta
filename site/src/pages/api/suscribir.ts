@@ -13,19 +13,23 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const POST: APIRoute = async ({ request, redirect }) => {
   const form = await request.formData();
   const email = String(form.get("email") || "").trim();
+  const source = String(form.get("source") || "unknown").trim();
 
   const apiKey = import.meta.env.MAILERLITE_API_KEY;
   const groupId = import.meta.env.MAILERLITE_GROUP_ID;
 
+  const fail = () => redirect(`/unete?ok=0&source=${encodeURIComponent(source)}`, 303);
+  const succeed = () => redirect(`/unete?ok=1&source=${encodeURIComponent(source)}`, 303);
+
   if (!EMAIL_RE.test(email)) {
-    return redirect("/unete?ok=0", 303);
+    return fail();
   }
 
   if (!apiKey || !groupId) {
     console.error(
       "MAILERLITE_API_KEY / MAILERLITE_GROUP_ID not set — see site/.env.example"
     );
-    return redirect("/unete?ok=0", 303);
+    return fail();
   }
 
   try {
@@ -42,12 +46,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     if (!res.ok) {
       const body = await res.text();
       console.error("MailerLite subscribe failed", res.status, body);
-      return redirect("/unete?ok=0", 303);
+      return fail();
     }
 
-    return redirect("/unete?ok=1", 303);
+    return succeed();
   } catch (err) {
     console.error("MailerLite subscribe error", err);
-    return redirect("/unete?ok=0", 303);
+    return fail();
   }
 };

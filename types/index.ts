@@ -24,6 +24,7 @@ export interface Article {
   tags: string[];
   author_id: string | null;
   featured_image_url: string | null;
+  featured_image_alt: string | null;
   is_published: boolean;
   published_at: string | null;
   reading_time_min: number | null;

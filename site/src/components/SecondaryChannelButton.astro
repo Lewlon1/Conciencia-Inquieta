@@ -19,7 +19,14 @@ const label = type ? labels[type] : null;
 ---
 
 {url && label && (
-  <a class={`btn-line ${dark ? "on-dark" : ""}`} href={url} target="_blank" rel="noopener noreferrer">
+  <a
+    class={`btn-line ${dark ? "on-dark" : ""}`}
+    href={url}
+    target="_blank"
+    rel="noopener noreferrer"
+    data-event="channel_click"
+    data-channel={type}
+  >
     {label}
   </a>
 )}

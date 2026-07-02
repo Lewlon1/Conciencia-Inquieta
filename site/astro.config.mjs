@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import vercel from "@astrojs/vercel";
+import sitemap from "@astrojs/sitemap";
 
 // Public site is static-first (see CLAUDE.md — "the only DB-backed surface
 // is the admin"). Every content page sets `export const prerender = true`
@@ -10,4 +11,5 @@ export default defineConfig({
   output: "server",
   adapter: vercel(),
   site: process.env.PUBLIC_SITE_URL || "https://conciencia-inquieta.vercel.app",
+  integrations: [sitemap()],
 });

@@ -1,0 +1,135 @@
+---
+// Cookieless analytics (Plausible/Umami — no consent needed, no cookies/PII)
+// loads unconditionally. Meta Pixel is consent-gated per MVP Build plan
+// Session 5 ("Pixel cannot fire pre-consent — EU") and only loads after the
+// visitor accepts via the banner below, or immediately on repeat visits if
+// they already accepted. Analytics provider choice (Plausible vs Umami) is
+// an open decision in the build plan — defaults to Plausible, swap via
+// PUBLIC_ANALYTICS_PROVIDER without touching this component.
+const provider = import.meta.env.PUBLIC_ANALYTICS_PROVIDER || "plausible";
+const analyticsDomain = import.meta.env.PUBLIC_ANALYTICS_DOMAIN;
+const pixelId = import.meta.env.PUBLIC_META_PIXEL_ID;
+---
+
+{analyticsDomain && provider === "plausible" && (
+  <script
+    is:inline
+    defer
+    data-domain={analyticsDomain}
+    event-props="true"
+    src="https://plausible.io/js/script.pageview-props.tagged-events.js"
+  />
+)}
+
+{analyticsDomain && provider === "umami" && (
+  <script
+    is:inline
+    defer
+    data-website-id={analyticsDomain}
+    src="https://cloud.umami.is/script.js"
+  />
+)}
+
+<script define:vars={{ provider, pixelId }} is:inline>
+  // Unified event tracking across whichever analytics provider is active.
+  // Covers the events MVP Build plan Session 5 asks for: signup,
+  // channel_click, article_read, scroll_depth, cta_click.
+  window.ciTrack = function (event, props) {
+    try {
+      if (window.plausible) window.plausible(event, { props: props || {} });
+      if (window.umami) window.umami.track(event, props || {});
+    } catch (e) {
+      /* analytics must never break the page */
+    }
+  };
+
+  // Delegated CTA / channel-click tracking: any element with
+  // data-event="name" fires ciTrack('name', {...dataset}) on click.
+  document.addEventListener("click", function (e) {
+    const el = e.target.closest("[data-event]");
+    if (!el) return;
+    const { event, ...props } = el.dataset;
+    window.ciTrack(event, props);
+  });
+
+  // --- Consent banner + Meta Pixel gating ---
+  var CONSENT_KEY = "ci_consent";
+
+  function loadPixel() {
+    if (!pixelId || window.fbq) return;
+    !(function (f, b, e, v, n, t, s) {
+      if (f.fbq) return;
+      n = f.fbq = function () {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = "2.0";
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = !0;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+    window.fbq("init", pixelId);
+    window.fbq("track", "PageView");
+  }
+
+  function getConsent() {
+    try {
+      return localStorage.getItem(CONSENT_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setConsent(value) {
+    try {
+      localStorage.setItem(CONSENT_KEY, value);
+    } catch (e) {
+      /* private browsing etc — banner will just reappear next visit */
+    }
+  }
+
+  function initConsent() {
+    var consent = getConsent();
+    if (consent === "granted") {
+      loadPixel();
+      return;
+    }
+    if (consent === "denied" || !pixelId) return; // nothing to ask consent for
+
+    var banner = document.getElementById("consent-banner");
+    if (!banner) return;
+    banner.hidden = false;
+
+    document.getElementById("consent-accept")?.addEventListener("click", function () {
+      setConsent("granted");
+      loadPixel();
+      banner.hidden = true;
+    });
+    document.getElementById("consent-reject")?.addEventListener("click", function () {
+      setConsent("denied");
+      banner.hidden = true;
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initConsent);
+  } else {
+    initConsent();
+  }
+</script>
+
+<div id="consent-banner" class="consent-banner" hidden>
+  <p>
+    Usamos analítica sin cookies para entender qué leéis. Con tu permiso, también usamos el
+    Píxel de Meta para medir campañas — no se activa hasta que aceptes. <a href="/cookies">Más info</a>.
+  </p>
+  <div class="consent-actions">
+    <button id="consent-reject" class="btn-line" type="button">Rechazar</button>
+    <button id="consent-accept" class="btn-amber" type="button">Aceptar</button>
+  </div>
+</div>

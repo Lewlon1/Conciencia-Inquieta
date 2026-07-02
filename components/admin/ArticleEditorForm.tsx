@@ -74,6 +74,9 @@ export default function ArticleEditorForm({
   const [featuredImageUrl, setFeaturedImageUrl] = useState(
     initialData?.featured_image_url ?? ""
   );
+  const [featuredImageAlt, setFeaturedImageAlt] = useState(
+    initialData?.featured_image_alt ?? ""
+  );
   const [isPublished, setIsPublished] = useState(
     initialData?.is_published ?? false
   );
@@ -141,6 +144,7 @@ export default function ArticleEditorForm({
       author_id: authorId || null,
       tags: inputToTags(tagsInput),
       featured_image_url: featuredImageUrl || null,
+      featured_image_alt: featuredImageAlt || null,
       is_published: shouldPublish,
       published_at: finalPublishedAt
         ? new Date(finalPublishedAt).toISOString()
@@ -297,13 +301,22 @@ export default function ArticleEditorForm({
       />
 
       {/* Featured image */}
-      <AdminInput
-        label="Featured image URL"
-        id="featured_image_url"
-        value={featuredImageUrl}
-        onChange={(e) => setFeaturedImageUrl(e.target.value)}
-        placeholder="https://…"
-      />
+      <div className="grid sm:grid-cols-2 gap-4">
+        <AdminInput
+          label="Featured image URL"
+          id="featured_image_url"
+          value={featuredImageUrl}
+          onChange={(e) => setFeaturedImageUrl(e.target.value)}
+          placeholder="https://…"
+        />
+        <AdminInput
+          label="Featured image alt text"
+          id="featured_image_alt"
+          value={featuredImageAlt}
+          onChange={(e) => setFeaturedImageAlt(e.target.value)}
+          placeholder="Describe the image for screen readers"
+        />
+      </div>
 
       {/* Split-pane markdown editor */}
       <div>

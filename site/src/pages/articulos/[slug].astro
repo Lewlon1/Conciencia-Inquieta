@@ -32,12 +32,31 @@ const bodyHtml = article.content ? await marked.parse(article.content) : "";
 const canonical = new URL(`/articulos/${article.slug}`, Astro.site).toString();
 const shareText = encodeURIComponent(article.title);
 const shareUrl = encodeURIComponent(canonical);
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  headline: article.title,
+  description: article.subtitle || article.meta_description || undefined,
+  image: article.featured_image_url || undefined,
+  datePublished: article.published_at || undefined,
+  dateModified: article.updated_at || article.published_at || undefined,
+  author: { "@type": "Person", name: authorName },
+  publisher: {
+    "@type": "Organization",
+    name: "Conciencia Inquieta",
+    logo: { "@type": "ImageObject", url: new URL("/favicon.svg", Astro.site).toString() },
+  },
+  mainEntityOfPage: canonical,
+  keywords: article.tags.join(", ") || undefined,
+};
 ---
 
 <BaseLayout
   title={article.meta_title || `${article.title} — Conciencia Inquieta`}
   description={article.meta_description || article.subtitle || ""}
   active="articulos"
+  jsonLd={[articleSchema]}
 >
   <div class="wrap">
     <article class="article">
@@ -65,7 +84,7 @@ const shareUrl = encodeURIComponent(canonical);
 
       <div class="ph hero-img" data-cat={catName} style={`background:${gradFor(catName)}`}>
         {article.featured_image_url ? (
-          <img src={article.featured_image_url} alt="" />
+          <img src={article.featured_image_url} alt={article.featured_image_alt || ""} />
         ) : (
           <span class="glyph">{glyphFor(catName)}</span>
         )}
@@ -104,3 +123,31 @@ const shareUrl = encodeURIComponent(canonical);
     </div>
   )}
 </BaseLayout>
+
+<script is:inline define:vars={{ slug: article.slug }}>
+  // "article_read" fires once, ~5s after load (a crude but honest proxy for
+  // "opened and stayed" rather than a bounce). "scroll_depth" fires once at
+  // 75% of document height. Both from MVP Build plan Session 5's event list.
+  let readFired = false;
+  let scrollFired = false;
+
+  setTimeout(function () {
+    if (readFired) return;
+    readFired = true;
+    window.ciTrack?.("article_read", { slug: slug });
+  }, 5000);
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (scrollFired) return;
+      const doc = document.documentElement;
+      const scrolled = (doc.scrollTop + doc.clientHeight) / doc.scrollHeight;
+      if (scrolled >= 0.75) {
+        scrollFired = true;
+        window.ciTrack?.("scroll_depth", { slug: slug, depth: "75" });
+      }
+    },
+    { passive: true }
+  );
+</script>

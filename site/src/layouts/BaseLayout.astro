@@ -2,15 +2,28 @@
 import Sidebar from "../components/Sidebar.astro";
 import Topbar from "../components/Topbar.astro";
 import Footer from "../components/Footer.astro";
+import Analytics from "../components/Analytics.astro";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description: string;
   active?: "home" | "articulos" | "sobre-nosotras" | "contacto";
+  /** Extra JSON-LD objects (e.g. Article schema) to merge in alongside the sitewide Organization schema. */
+  jsonLd?: Record<string, unknown>[];
 }
-const { title, description, active } = Astro.props;
+const { title, description, active, jsonLd = [] } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Conciencia Inquieta",
+  url: Astro.site?.toString(),
+  logo: new URL("/favicon.svg", Astro.site).toString(),
+  description:
+    "Diario digital autogestionado: verdad con contexto, memoria y humanidad.",
+};
 ---
 
 <!DOCTYPE html>
@@ -32,13 +45,23 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonical} />
 <meta name="twitter:card" content="summary_large_image" />
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+{jsonLd.map((schema) => (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+))}
+
+<Analytics />
 </head>
 <body>
+<a class="skip-link" href="#main">Saltar al contenido</a>
 <div class="app">
   <Sidebar active={active} />
   <div class="main">
     <Topbar />
-    <slot />
+    <main id="main">
+      <slot />
+    </main>
     <Footer />
   </div>
 </div>

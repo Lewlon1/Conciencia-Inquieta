@@ -2,10 +2,6 @@
 export const prerender = true;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const params = Astro.url.searchParams;
-const success = params.get("ok") === "1";
-const error = params.get("ok") === "0";
 ---
 
 <BaseLayout
@@ -19,13 +15,7 @@ const error = params.get("ok") === "0";
     <p>¿Una idea, una colaboración, una historia que merece ser contada? Escríbenos.</p>
   </div>
   <div class="wrap section">
-    {success ? (
-      <div class="success">
-        <div class="tick">✓</div>
-        <h3>Mensaje enviado</h3>
-        <p>Gracias por escribir. Te responderemos pronto.</p>
-      </div>
-    ) : (
+    <div id="contact-block">
       <form class="form" action="/api/contacto" method="post">
         <div class="field">
           <label for="nombre">Nombre</label>
@@ -47,9 +37,33 @@ const error = params.get("ok") === "0";
           <label for="mensaje">Mensaje</label>
           <textarea id="mensaje" name="mensaje" placeholder="Cuéntanos…" required></textarea>
         </div>
-        {error && <p class="note error">No hemos podido enviar tu mensaje. Inténtalo de nuevo o escríbenos directamente.</p>}
+        <p class="note error" data-contact-error hidden>No hemos podido enviar tu mensaje. Inténtalo de nuevo o escríbenos directamente.</p>
         <button class="btn-amber" type="submit">Enviar mensaje →</button>
       </form>
-    )}
+      <div class="success" data-contact-success hidden>
+        <div class="tick">✓</div>
+        <h3>Mensaje enviado</h3>
+        <p>Gracias por escribir. Te responderemos pronto.</p>
+      </div>
+    </div>
   </div>
 </BaseLayout>
+
+<script>
+  // /contacto is static (prerender=true); POST /api/contacto redirects back
+  // here with ?ok=1|0, read client-side same as SubscribeForm.
+  const params = new URLSearchParams(location.search);
+  const ok = params.get("ok");
+  if (ok === "1" || ok === "0") {
+    const block = document.getElementById("contact-block");
+    const form = block?.querySelector("form");
+    const success = block?.querySelector("[data-contact-success]");
+    const error = block?.querySelector("[data-contact-error]");
+    if (ok === "1") {
+      form?.setAttribute("hidden", "");
+      success?.removeAttribute("hidden");
+    } else {
+      error?.removeAttribute("hidden");
+    }
+  }
+</script>
