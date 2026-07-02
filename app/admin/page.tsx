@@ -1,30 +1,33 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { BlogPost } from "@/types";
+import type { ArticleWithRelations } from "@/types";
 
-const quickActions = [{ label: "Write a blog post", href: "/admin/blog/new" }];
+const quickActions = [{ label: "Write an article", href: "/admin/articles/new" }];
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  const [{ count: totalPosts }, { count: publishedPosts }, { data: recentPosts }] =
-    await Promise.all([
-      supabase.from("blog_posts").select("*", { count: "exact", head: true }),
-      supabase
-        .from("blog_posts")
-        .select("*", { count: "exact", head: true })
-        .eq("is_published", true),
-      supabase
-        .from("blog_posts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5)
-        .returns<BlogPost[]>(),
-    ]);
+  const [
+    { count: totalArticles },
+    { count: publishedArticles },
+    { data: recentArticles },
+  ] = await Promise.all([
+    supabase.from("articles").select("*", { count: "exact", head: true }),
+    supabase
+      .from("articles")
+      .select("*", { count: "exact", head: true })
+      .eq("is_published", true),
+    supabase
+      .from("articles")
+      .select("*, category:categories(*), author:authors(*)")
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .returns<ArticleWithRelations[]>(),
+  ]);
 
   const metrics = [
-    { label: "Total posts", value: totalPosts ?? 0 },
-    { label: "Published", value: publishedPosts ?? 0 },
+    { label: "Total articles", value: totalArticles ?? 0 },
+    { label: "Published", value: publishedArticles ?? 0 },
   ];
 
   return (
@@ -33,7 +36,9 @@ export default async function AdminDashboardPage() {
         <h1 className="font-heading text-2xl text-[#1a1a18]">
           Bienvenido a Conciencia Inquieta
         </h1>
-        <p className="text-[#6b6560] mt-1">Session 1 admin — blog only for now</p>
+        <p className="text-[#6b6560] mt-1">
+          Digital magazine admin — articles, categories and authors
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 max-w-md">
@@ -53,33 +58,33 @@ export default async function AdminDashboardPage() {
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white border border-[#e8e5df] rounded-xl p-6">
           <h2 className="font-heading text-lg text-[#1a1a18] mb-4">
-            Recent posts
+            Recent articles
           </h2>
-          {recentPosts && recentPosts.length > 0 ? (
+          {recentArticles && recentArticles.length > 0 ? (
             <div className="space-y-3">
-              {recentPosts.map((post) => (
+              {recentArticles.map((article) => (
                 <Link
-                  key={post.id}
-                  href={`/admin/blog/${post.id}`}
+                  key={article.id}
+                  href={`/admin/articles/${article.id}`}
                   className="flex items-center justify-between py-2 border-b border-[#f0ede8] last:border-0 group"
                 >
                   <span className="text-sm font-medium text-[#1a1a18] truncate group-hover:underline">
-                    {post.title}
+                    {article.title}
                   </span>
                   <span
                     className={`text-[11px] px-2 py-0.5 rounded-full shrink-0 ${
-                      post.is_published
+                      article.is_published
                         ? "bg-green-50 text-green-700"
                         : "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {post.is_published ? "Published" : "Draft"}
+                    {article.is_published ? "Published" : "Draft"}
                   </span>
                 </Link>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[#b8b0a4]">No posts yet</p>
+            <p className="text-sm text-[#b8b0a4]">No articles yet</p>
           )}
         </div>
 

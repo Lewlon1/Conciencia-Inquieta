@@ -6,34 +6,13 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/client";
-import type { BlogPost } from "@/types";
+import type { Article, Category, Author } from "@/types";
 import AdminInput from "@/components/admin/ui/AdminInput";
 import AdminTextarea from "@/components/admin/ui/AdminTextarea";
+import AdminSelect from "@/components/admin/ui/AdminSelect";
 import AdminToggle from "@/components/admin/ui/AdminToggle";
 import Toast from "@/components/admin/ui/Toast";
 import ConfirmModal from "@/components/admin/ui/ConfirmModal";
-
-const PILLARS = ["Decode", "Reframe", "Navigate", "Align"] as const;
-type Pillar = (typeof PILLARS)[number];
-
-const pillarStyles: Record<Pillar, { active: string; inactive: string }> = {
-  Decode: {
-    active: "bg-cyan-50 text-cyan-700 border-cyan-200",
-    inactive: "bg-white text-[#6b6560] border-[#e8e5df] hover:border-cyan-300",
-  },
-  Reframe: {
-    active: "bg-orange-50 text-orange-700 border-orange-200",
-    inactive: "bg-white text-[#6b6560] border-[#e8e5df] hover:border-orange-300",
-  },
-  Navigate: {
-    active: "bg-green-50 text-green-700 border-green-200",
-    inactive: "bg-white text-[#6b6560] border-[#e8e5df] hover:border-green-300",
-  },
-  Align: {
-    active: "bg-amber-50 text-amber-700 border-amber-200",
-    inactive: "bg-white text-[#6b6560] border-[#e8e5df] hover:border-amber-300",
-  },
-};
 
 function generateSlug(title: string) {
   return title
@@ -56,20 +35,44 @@ function toLocalDatetime(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-interface BlogEditorFormProps {
-  initialData?: BlogPost;
+function tagsToInput(tags: string[]) {
+  return tags.join(", ");
 }
 
-export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
+function inputToTags(value: string): string[] {
+  return value
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+interface ArticleEditorFormProps {
+  initialData?: Article;
+  categories: Category[];
+  authors: Author[];
+}
+
+export default function ArticleEditorForm({
+  initialData,
+  categories,
+  authors,
+}: ArticleEditorFormProps) {
   const router = useRouter();
   const supabase = createClient();
 
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [slug, setSlug] = useState(initialData?.slug ?? "");
+  const [subtitle, setSubtitle] = useState(initialData?.subtitle ?? "");
   const [content, setContent] = useState(initialData?.content ?? "");
-  const [excerpt, setExcerpt] = useState(initialData?.excerpt ?? "");
-  const [pillar, setPillar] = useState<Pillar | null>(
-    (initialData?.pillar as Pillar | null) ?? null
+  const [categoryId, setCategoryId] = useState(
+    initialData?.category_id ?? ""
+  );
+  const [authorId, setAuthorId] = useState(initialData?.author_id ?? "");
+  const [tagsInput, setTagsInput] = useState(
+    tagsToInput(initialData?.tags ?? [])
+  );
+  const [featuredImageUrl, setFeaturedImageUrl] = useState(
+    initialData?.featured_image_url ?? ""
   );
   const [isPublished, setIsPublished] = useState(
     initialData?.is_published ?? false
@@ -132,9 +135,12 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
     const record = {
       title,
       slug,
+      subtitle: subtitle || null,
       content: content || null,
-      excerpt: excerpt || null,
-      pillar,
+      category_id: categoryId || null,
+      author_id: authorId || null,
+      tags: inputToTags(tagsInput),
+      featured_image_url: featuredImageUrl || null,
       is_published: shouldPublish,
       published_at: finalPublishedAt
         ? new Date(finalPublishedAt).toISOString()
@@ -151,20 +157,20 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
     try {
       if (initialData) {
         const { error } = await supabase
-          .from("blog_posts")
+          .from("articles")
           .update(record)
           .eq("id", initialData.id);
         if (error) throw error;
-        setToast({ message: "Post saved successfully", type: "success" });
+        setToast({ message: "Article saved successfully", type: "success" });
       } else {
         const { data, error } = await supabase
-          .from("blog_posts")
+          .from("articles")
           .insert(record)
           .select("id")
           .single();
         if (error) throw error;
-        setToast({ message: "Post created successfully", type: "success" });
-        router.replace(`/admin/blog/${data.id}`);
+        setToast({ message: "Article created successfully", type: "success" });
+        router.replace(`/admin/articles/${data.id}`);
       }
     } catch (err: unknown) {
       const message =
@@ -180,14 +186,14 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
     setDeleting(true);
     try {
       const { error } = await supabase
-        .from("blog_posts")
+        .from("articles")
         .delete()
         .eq("id", initialData.id);
       if (error) throw error;
-      router.replace("/admin/blog");
+      router.replace("/admin/articles");
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Failed to delete post";
+        err instanceof Error ? err.message : "Failed to delete article";
       setToast({ message, type: "error" });
       setDeleting(false);
       setShowDelete(false);
@@ -206,8 +212,8 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
 
       <ConfirmModal
         isOpen={showDelete}
-        title="Delete post"
-        message="Are you sure you want to delete this post? This action cannot be undone."
+        title="Delete article"
+        message="Are you sure you want to delete this article? This action cannot be undone."
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setShowDelete(false)}
@@ -216,10 +222,10 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          href="/admin/blog"
+          href="/admin/articles"
           className="text-sm text-[#6b6560] hover:text-[#1a1a18] transition-colors"
         >
-          &larr; Blog
+          &larr; Articles
         </Link>
       </div>
 
@@ -229,48 +235,74 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Post title"
+          placeholder="Article title"
           className="w-full text-2xl font-heading text-[#1a1a18] bg-transparent border-0 border-b border-[#e8e5df] pb-2 focus:outline-none focus:border-[#1a1a18] transition-colors placeholder:text-[#b8b0a4]"
         />
         <div className="flex items-center gap-1 text-sm text-[#6b6560]">
-          <span>/blog/</span>
+          <span>/articulos/</span>
           <input
             type="text"
             value={slug}
             onChange={handleSlugChange}
-            placeholder="post-slug"
+            placeholder="article-slug"
             className="bg-transparent border-0 text-sm text-[#1a1a18] focus:outline-none placeholder:text-[#b8b0a4]"
           />
         </div>
       </div>
 
-      {/* Meta row: pillar selector + reading time */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          {PILLARS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPillar(pillar === p ? null : p)}
-              className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-                pillar === p ? pillarStyles[p].active : pillarStyles[p].inactive
-              }`}
-            >
-              {p}
-            </button>
-          ))}
+      {/* Subtitle / deck */}
+      <AdminTextarea
+        label="Subtitle / deck"
+        id="subtitle"
+        value={subtitle}
+        onChange={(e) => setSubtitle(e.target.value)}
+        placeholder="One or two sentences — shown under the title and as the card teaser"
+        rows={2}
+      />
+
+      {/* Category + author + reading time */}
+      <div className="grid sm:grid-cols-3 gap-4 items-end">
+        <AdminSelect
+          label="Category"
+          id="category"
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          placeholder="Select a category"
+          required
+          options={categories
+            .slice()
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((c) => ({ value: c.id, label: c.name }))}
+        />
+        <AdminSelect
+          label="Author"
+          id="author"
+          value={authorId}
+          onChange={(e) => setAuthorId(e.target.value)}
+          placeholder="Select an author"
+          options={authors.map((a) => ({ value: a.id, label: a.name }))}
+        />
+        <div className="pb-2.5 text-sm text-[#6b6560]">
+          {readingTime} min read
         </div>
-        <span className="text-sm text-[#6b6560]">{readingTime} min read</span>
       </div>
 
-      {/* Excerpt */}
-      <AdminTextarea
-        label="Excerpt"
-        id="excerpt"
-        value={excerpt}
-        onChange={(e) => setExcerpt(e.target.value)}
-        placeholder="Brief summary for cards and SEO..."
-        rows={3}
+      {/* Tags */}
+      <AdminInput
+        label="Tags"
+        id="tags"
+        value={tagsInput}
+        onChange={(e) => setTagsInput(e.target.value)}
+        placeholder="cuidados, economía feminista, comunidad (comma-separated)"
+      />
+
+      {/* Featured image */}
+      <AdminInput
+        label="Featured image URL"
+        id="featured_image_url"
+        value={featuredImageUrl}
+        onChange={(e) => setFeaturedImageUrl(e.target.value)}
+        placeholder="https://…"
       />
 
       {/* Split-pane markdown editor */}
@@ -282,7 +314,7 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your post in Markdown..."
+            placeholder="Write the article in Markdown..."
             className="font-mono text-sm p-4 bg-[#fafaf8] resize-none h-full border-r border-[#e8e5df] focus:outline-none placeholder:text-[#b8b0a4]"
           />
           <div className="bg-[#0a1628] p-6 overflow-y-auto">
@@ -367,7 +399,7 @@ export default function BlogEditorForm({ initialData }: BlogEditorFormProps) {
             onClick={() => setShowDelete(true)}
             className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
           >
-            Delete post
+            Delete article
           </button>
         )}
       </div>

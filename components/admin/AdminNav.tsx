@@ -6,7 +6,7 @@ import { FLAGS } from "@/config/flags";
 
 const navLinks = [
   { label: "Dashboard", href: "/admin" },
-  { label: "Blog", href: "/admin/blog" },
+  { label: "Articles", href: "/admin/articles" },
   // Reserved, not built yet — see config/flags.ts and CLAUDE.md golden rules.
   ...(FLAGS.servicePriceManagement
     ? [{ label: "Services", href: "/admin/services" }]

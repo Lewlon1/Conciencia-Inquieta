@@ -1,12 +1,28 @@
 // Database row types (matching Supabase schema)
 
-export interface BlogPost {
+export interface Category {
+  id: string;
+  slug: string;
+  name: string;
+  sort_order: number;
+}
+
+export interface Author {
+  id: string;
+  name: string;
+  bio: string | null;
+  avatar_url: string | null;
+}
+
+export interface Article {
   id: string;
   title: string;
   slug: string;
+  subtitle: string | null;
   content: string | null;
-  excerpt: string | null;
-  pillar: "Decode" | "Reframe" | "Navigate" | "Align" | null;
+  category_id: string | null;
+  tags: string[];
+  author_id: string | null;
   featured_image_url: string | null;
   is_published: boolean;
   published_at: string | null;
@@ -15,4 +31,10 @@ export interface BlogPost {
   meta_description: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Article with its category/author joined in — what admin list views and the public site fetch. */
+export interface ArticleWithRelations extends Article {
+  category: Category | null;
+  author: Author | null;
 }
