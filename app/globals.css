@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    line-height: 1.6;
+  }
+
+  /* Admin routes wrap children in .admin-theme */
+  .admin-theme {
+    background-color: #fafaf8;
+    color: #1a1a18;
+  }
+
+  .admin-theme h1,
+  .admin-theme h2,
+  .admin-theme h3,
+  .admin-theme h4 {
+    color: #1a1a18;
+  }
+
+  .admin-theme ::selection {
+    background-color: #0f4e77;
+    color: #fff;
+  }
+}

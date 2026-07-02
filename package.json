@@ -1,5 +1,5 @@
 {
-  "name": "astropsyche-lab",
+  "name": "conciencia-inquieta",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,11 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.1029.0",
-    "@calcom/embed-react": "^1.5.3",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
-    "@vercel/analytics": "^2.0.1",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
@@ -25,6 +22,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.20",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",

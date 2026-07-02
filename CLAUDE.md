@@ -45,25 +45,36 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 - Branch → build → **test on staging** → deploy. Migrations staging-first.
 - End every session: update `lessons.md` (what changed, what broke, decisions, next step).
 
-## Repo-specific values — TODO (fill before Session 1)
-- Supabase project ref (CI): `TODO`
-- Feature-flag config path: `TODO`
-- Admin route/path: `TODO`
+## Repo-specific values
+- Supabase project ref (CI): `lfyerbxqfwjjftcpjzbv` (https://lfyerbxqfwjjftcpjzbv.supabase.co)
+- Feature-flag config path: `config/flags.ts`
+- Admin route/path: `/admin` (Supabase Auth email/password, see `middleware.ts`)
 - MailerLite account + audience/group ID: `TODO`
 - Secondary channel: `TODO (WhatsApp Channel | Telegram)`
 - Analytics tool: `TODO (Plausible | Umami)`
 
-## Repo structure — TODO (align to the actual fork)
+## Repo structure — as of Session 1
+The admin is a **root-level Next.js app** (App Router) — that's what was actually forked from Astro-Psyche Lab, not an Astro project. The "Stack" section above describing an Astro public site is the **Session 3 target**, not what exists today.
+
 ```
 /
-├─ src/
-│  ├─ pages/         # Astro routes: index, articulo/[slug], categoria/[cat], sobre, unete, contacto, legal/*
-│  ├─ components/    # ported prototype components
-│  ├─ layouts/
-│  ├─ lib/           # supabase client, mailerlite, analytics
-│  └─ config/        # flags.ts (Lewis-only) + site config
-├─ admin/            # forked Astro-Psyche Lab custom admin
-├─ lessons.md        # rolling log, updated each session
-├─ BUILD-PLAN.md
+├─ app/
+│  ├─ layout.tsx        # root layout — minimal, no Gabriela branding/fonts/pixel
+│  ├─ globals.css
+│  └─ admin/             # the only DB-backed surface in the MVP
+│     ├─ layout.tsx, page.tsx, login/
+│     └─ blog/           # basic article CRUD (Session 2 extends the content model)
+├─ components/admin/     # AdminNav, SignOutButton, BlogEditorForm, ui/*
+├─ config/flags.ts        # Lewis-only feature flags
+├─ lib/supabase/          # client.ts, server.ts, middleware.ts (SSR auth)
+├─ middleware.ts
+├─ types/index.ts
+├─ supabase/migrations/   # blog_posts + RLS only, staging-first
+├─ lessons.md             # rolling log, updated each session
+├─ MVP Build plan         # note: literal filename, no .md extension — this is the doc CLAUDE.md calls "BUILD-PLAN.md"
 └─ CLAUDE.md
 ```
+
+**Open architecture question for Session 3:** how does the Astro public site coexist with this Next.js admin — same repo as a monorepo/two Vercel projects, or does the admin move under an `admin/` subpath? Not resolved yet; don't assume either way.
+
+**Not ported from Astro-Psyche Lab (Session 1 scope call):** Testimonials, Events, Leads (CRM), Analytics dashboard, Engagement — all astrology-coaching-business-specific, no equivalent in the magazine model. The **service price management** and **content-generation tools** (repurpose, inspiration, transits, video-editor, photoshop — AWS Bedrock-backed) named in the golden rules above are **not in this repo at all yet**; `config/flags.ts` reserves the booleans, but the actual code stays in the source fork until a post-MVP session ports and reveals it one by one. If that reading is wrong, redirect — it was the leanest interpretation of the Session 1 checklist, not a locked-in architecture call.
