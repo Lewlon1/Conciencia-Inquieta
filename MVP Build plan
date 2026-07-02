@@ -1,0 +1,121 @@
+# Conciencia Inquieta — MVP Build Plan
+
+A self-managed digital magazine. This document is the build roadmap to the MVP.
+For day-to-day working rules and conventions, see `CLAUDE.md`.
+
+---
+
+## The objective
+
+**One job: turn visitors into subscribers.** Own the audience (an email list plus one broadcast channel), and measure everything. Prove there is genuine interest before building anything heavier.
+
+Marie's following is currently *rented* from the social platforms. Content is the reason to visit; the **email signup is the asset**. Community, membership and shop come later — only when there is evidence the audience shows up.
+
+---
+
+## Approach & key decisions
+
+- **Reuse, don't rebuild.** Fork the Astro-Psyche Lab backend (Supabase + custom admin) into a **new, separate CI Supabase project**. Copy the pattern, not the instance. (Code is Lewis's to reuse.)
+- **Inherited features stay hidden for the MVP.** The fork includes **service price management** and **content-generation tools**. Both are **flagged OFF** via a code-managed boolean config (Lewis-only). They will be revealed to Marie one-by-one for testing/verification *after* the MVP ships.
+- **Article upload is currently basic** and will be extended into a proper magazine content model (categories, tags, author, subtitle, featured image, reading time, related).
+- **Architecture:** the public site is **static Astro built from content in Supabase**. The only database-backed surface in the MVP is the **admin/CMS** (Marie logs in to post). **No end-user accounts or payments in the MVP.**
+- **Email:** MailerLite — reuse the integration code, but on **CI's own account/audience**, never co-mingled with another client's list. (The whole thesis is Marie *owning* her audience.)
+- **Hosting:** Vercel, on the generic `*.vercel.app` subdomain first. Custom domain transfer is **out of MVP**.
+- **Standing rules:** never migrate production (staging-first), one Supabase project per product, reference exact files in session prompts, keep a rolling `lessons.md`, CLI-first.
+
+---
+
+## MVP scope — IN
+
+- Static Astro public site: Home, Article template, Category pages, About, **"Únete"** landing, Contact, legal pages
+- Magazine content model + admin so Marie self-publishes
+- Inherited backend, with non-MVP features flagged off
+- **Email list signup (primary CTA)** with double opt-in
+- **One broadcast channel (secondary CTA)** — WhatsApp Channel or Telegram
+- Lead-magnet delivery on signup (plumbing now, asset later)
+- Cookieless analytics + Meta Pixel + consent banner (CMP)
+- UTM convention for social links
+- SEO, performance, accessibility, responsive baseline
+- Legal: privacy, cookies, terms
+
+## Explicitly OUT of MVP (later / v2+)
+
+- End-user accounts & login, saved articles
+- Membership / subscription billing, manage-subscription
+- Shop / e-commerce (catalog, cart, checkout, payments, confirmation emails)
+- Google Ads
+- On-site community / comments
+- Internal search *(v2)*
+- Services section *(v2 — inquiry-based, no checkout)*
+- **GoDaddy → custom-domain transfer** *(separate later task; preserve MX/email, watch parked A-records + domain forwarding, use delegate access)*
+- Revealing the flagged service-pricing / content-generation features *(post-MVP, one by one)*
+
+---
+
+## Build sessions
+
+Each section below is **one Claude Code session**. Confirm or strike bullets before starting each.
+
+### Session 1 — Fork & flag the backend
+- Create a **new CI Supabase project** (its own project + env vars; staging-first; never touch the Astro-Psyche Lab project)
+- Deploy the forked custom admin for CI; verify login + saving a draft article
+- Add a **feature-flag config** — code-managed booleans, **Lewis-only** (Marie never sees a flag UI)
+- **Flag OFF** the inherited non-MVP features: service price management, content-generation tools
+
+### Session 2 — Magazine content model
+- Extend the basic article upload to: the **9 categories**, **tags**, **author/byline**, **subtitle/deck**, **featured image**, **reading time**, **related-articles**
+- Update the admin so Marie can set these fields when posting
+- Migrations **staging-first**; seed the 9 categories; create author record(s)
+
+### Session 3 — Public site & reading experience
+- Build CI's Astro front-end from the prototype tokens/components (**CI's own brand**, not Gabriela's design): Home, Article template, Category pages, About, **"Únete"** landing, Contact, empty legal-page scaffolding
+- Wire pages to pull content from the forked backend
+- Reading experience as prototyped (byline, featured image, tags, related, share)
+- Baseline: responsive, SEO basics, performance, accessibility
+- Deploy to the **Vercel subdomain**
+
+### Session 4 — Capture system + contact
+- **Email signup via MailerLite** (reuse integration; CI's own audience), **double opt-in**, at footer / end-of-article / signup block / Únete page
+- **Secondary channel CTA** — a channel-agnostic component (WhatsApp Channel | Telegram), swapped in once decided
+- **Lead-magnet delivery** on signup (plumbing now, asset later)
+- **Contact-form delivery** (decide where the message lands)
+
+### Session 5 — Measurement, consent, legal & launch
+*(Fullest session — may split if it runs long.)*
+- Cookieless analytics (Plausible/Umami) + events: signup, channel click, article read, scroll depth, CTA clicks
+- **Meta Pixel** (+ Conversions API optional), **consent-gated**
+- **Consent banner / CMP** wired to consent mode (Pixel cannot fire pre-consent — EU)
+- **UTM convention** + a cheat-sheet for Marie's social links
+- Legal content: privacy, cookies, terms
+- Final SEO (sitemap, structured data) + perf/a11y pass
+- **Ship the MVP live** (`vercel.app`)
+
+---
+
+## Running in parallel — Marie's homework
+*(Gates launch, not the build sessions.)*
+- Real launch articles + author bios
+- Photos / illustration for articles
+- The lead-magnet asset (the free guide/PDF)
+- Final confirmed category list
+- **Decision: WhatsApp Channel vs Telegram**
+
+---
+
+## Open decisions
+- **Secondary channel:** WhatsApp Channel vs Telegram — build channel-agnostic until decided
+- **Analytics:** Plausible vs Umami
+
+---
+
+## Definition of done (MVP)
+- Site live on `vercel.app`
+- Marie can publish a fully-formed article (with category, tags, image, byline) from the admin
+- Email signup with **double opt-in** works end-to-end; lead magnet delivered
+- Secondary channel CTA live
+- Analytics + Meta Pixel + consent banner firing correctly (Pixel only after consent)
+- Legal pages present
+- Inherited features remain hidden behind flags
+
+## Validation gate (decides whether v2 is earned)
+Once live: **do Marie's social posts drive visits, and do those visitors convert to subscribers?** If yes → v2. If no → fix the funnel before building anything heavier.
