@@ -38,3 +38,13 @@ export interface ArticleWithRelations extends Article {
   category: Category | null;
   author: Author | null;
 }
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}

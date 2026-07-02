@@ -6,6 +6,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import { getPublishedArticles, getRelatedArticles, formatDate } from "../../lib/content";
 import { gradFor, glyphFor } from "../../lib/categoryStyle";
+import SubscribeForm from "../../components/SubscribeForm.astro";
 
 export async function getStaticPaths() {
   const articles = await getPublishedArticles();
@@ -78,6 +79,18 @@ const shareUrl = encodeURIComponent(canonical);
         </div>
       )}
     </article>
+  </div>
+
+  <div class="wrap">
+    <div class="article" style="max-width:var(--maxread)">
+      <div class="subscribe" style="padding:34px">
+        <div>
+          <h2 style="font-size:1.5rem">¿Te ha hecho pensar?</h2>
+          <p>Recibe lo nuevo directamente en tu correo, sin depender de ningún algoritmo.</p>
+        </div>
+        <SubscribeForm source="end-of-article" dark />
+      </div>
+    </div>
   </div>
 
   {related.length > 0 && (
