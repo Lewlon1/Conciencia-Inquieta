@@ -1,0 +1,49 @@
+---
+export const prerender = true;
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import { getPublishedArticles, getCategories, getArticlesByCategory } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const categories = await getCategories();
+  const articles = await getPublishedArticles();
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: {
+      category,
+      categories,
+      articles: getArticlesByCategory(articles, category.slug),
+    },
+  }));
+}
+
+const { category, categories, articles } = Astro.props;
+---
+
+<BaseLayout
+  title={`${category.name} — Conciencia Inquieta`}
+  description={`Artículos de Conciencia Inquieta en la categoría ${category.name}.`}
+  active="articulos"
+>
+  <div class="wrap page-intro">
+    <div class="kicker">Categoría</div>
+    <h1>{category.name}</h1>
+    <p>Todo lo publicado en Conciencia Inquieta bajo {category.name.toLowerCase()}.</p>
+  </div>
+  <div class="wrap section">
+    <div class="chips">
+      <a class="chip" href="/articulos">Todas</a>
+      {categories.map((c) => (
+        <a class={`chip ${c.slug === category.slug ? "active" : ""}`} href={`/categoria/${c.slug}`}>{c.name}</a>
+      ))}
+    </div>
+    {articles.length > 0 ? (
+      <div class="grid">
+        {articles.map((a) => <ArticleCard article={a} />)}
+      </div>
+    ) : (
+      <p style="color:var(--muted);font-family:var(--read);font-style:italic">Todavía no hay artículos en esta categoría.</p>
+    )}
+  </div>
+</BaseLayout>

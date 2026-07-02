@@ -1,0 +1,34 @@
+---
+export const prerender = true;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SubscribeForm from "../components/SubscribeForm.astro";
+import SecondaryChannelButton from "../components/SecondaryChannelButton.astro";
+
+const params = Astro.url.searchParams;
+const success = params.get("ok") === "1";
+const error = params.get("ok") === "0";
+---
+
+<BaseLayout
+  title="Únete — Conciencia Inquieta"
+  description="Suscríbete al boletín de Conciencia Inquieta: lo nuevo directamente en tu correo, sin algoritmos de por medio."
+>
+  <div class="wrap page-intro">
+    <div class="kicker">Comunidad</div>
+    <h1>Únete</h1>
+    <p>Las redes son terreno prestado. Esto es lo que de verdad es tuyo: un email a la semana, directo a tu bandeja, sin depender de ningún algoritmo.</p>
+  </div>
+  <div class="wrap section">
+    <div class="form">
+      <SubscribeForm source="unete" success={success} error={error} />
+    </div>
+    <div class="note" style="margin-top:10px">
+      <span>ℹ️</span>
+      <div><b>Doble confirmación:</b> tras dejar tu email recibirás un mensaje para confirmar. Así nos aseguramos de que de verdad quieres estar aquí — y de que tu bandeja de entrada no se llena de nada que no hayas pedido.</div>
+    </div>
+    <div style="margin-top:28px">
+      <SecondaryChannelButton />
+    </div>
+  </div>
+</BaseLayout>

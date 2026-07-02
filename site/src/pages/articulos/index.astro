@@ -1,0 +1,37 @@
+---
+export const prerender = true;
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import { getPublishedArticles, getCategories } from "../../lib/content";
+
+const articles = await getPublishedArticles();
+const categories = await getCategories();
+---
+
+<BaseLayout
+  title="Artículos — Conciencia Inquieta"
+  description="Verdad con contexto, memoria y humanidad. El archivo completo de Conciencia Inquieta."
+  active="articulos"
+>
+  <div class="wrap page-intro">
+    <div class="kicker">Archivo</div>
+    <h1>Artículos</h1>
+    <p>Verdad con contexto, memoria y humanidad. Filtra por las temáticas que nos atraviesan.</p>
+  </div>
+  <div class="wrap section">
+    <div class="chips">
+      <a class="chip active" href="/articulos">Todas</a>
+      {categories.map((c) => (
+        <a class="chip" href={`/categoria/${c.slug}`}>{c.name}</a>
+      ))}
+    </div>
+    {articles.length > 0 ? (
+      <div class="grid">
+        {articles.map((a) => <ArticleCard article={a} />)}
+      </div>
+    ) : (
+      <p style="color:var(--muted);font-family:var(--read);font-style:italic">Todavía no hay artículos publicados.</p>
+    )}
+  </div>
+</BaseLayout>

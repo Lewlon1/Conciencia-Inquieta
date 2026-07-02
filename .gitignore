@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# dependencies (root admin + site/ Astro app both apply)
+node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -9,9 +9,13 @@
 # testing
 /coverage
 
-# next.js
+# next.js (root admin)
 /.next/
 /out/
+
+# astro (site/)
+site/dist/
+site/.astro/
 
 # production
 /build
@@ -25,7 +29,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files — never commit real Supabase/MailerLite/Pixel keys
+.env
+.env.local
 .env*.local
 
 # vercel

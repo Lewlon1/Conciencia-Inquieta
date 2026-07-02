@@ -1,0 +1,32 @@
+---
+// Free MailerLite email-list signup — CI's own audience, double opt-in.
+// The visual form ships in Session 3; POST /api/suscribir (Session 4) does
+// the actual MailerLite call. See MVP Build plan Session 4.
+interface Props {
+  source: string;
+  dark?: boolean;
+  success?: boolean;
+  error?: boolean;
+}
+const { source, dark = false, success = false, error = false } = Astro.props;
+---
+
+{success ? (
+  <div class="success">
+    <div class="tick">✓</div>
+    <h3>Revisa tu correo</h3>
+    <p>Te hemos enviado un email para confirmar tu suscripción (doble opt-in). Sin confirmar, no recibirás nada.</p>
+  </div>
+) : (
+  <form class="subscribe-form" action="/api/suscribir" method="post">
+    <div class="row">
+      <input type="email" name="email" placeholder="tucorreo@ejemplo.com" aria-label="Email" required />
+      <button class="btn-amber" type="submit">Únete →</button>
+    </div>
+    <input type="hidden" name="source" value={source} />
+    {error && <p class="note error">No hemos podido procesar tu suscripción. Inténtalo de nuevo.</p>}
+    <p class="legal" style={dark ? "" : "color:var(--muted)"}>
+      Un email a la semana, como mucho. Cancela cuando quieras. Nunca compartimos tu dirección.
+    </p>
+  </form>
+)}

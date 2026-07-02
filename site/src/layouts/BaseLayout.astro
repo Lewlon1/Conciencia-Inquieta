@@ -1,0 +1,69 @@
+---
+import Sidebar from "../components/Sidebar.astro";
+import Topbar from "../components/Topbar.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  active?: "home" | "articulos" | "sobre-nosotras" | "contacto";
+}
+const { title, description, active } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,900;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Conciencia Inquieta" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta name="twitter:card" content="summary_large_image" />
+</head>
+<body>
+<div class="app">
+  <Sidebar active={active} />
+  <div class="main">
+    <Topbar />
+    <slot />
+    <Footer />
+  </div>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<script>
+  const hamb = document.getElementById("hamb");
+  const collapseBtn = document.getElementById("collapseBtn");
+  const overlay = document.getElementById("overlay");
+
+  function openNav() {
+    document.body.classList.add("nav-open");
+    overlay?.classList.add("show");
+  }
+  function closeNav() {
+    document.body.classList.remove("nav-open");
+    overlay?.classList.remove("show");
+  }
+
+  hamb?.addEventListener("click", openNav);
+  overlay?.addEventListener("click", closeNav);
+  collapseBtn?.addEventListener("click", () => document.body.classList.toggle("rail"));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeNav();
+  });
+</script>
+</body>
+</html>

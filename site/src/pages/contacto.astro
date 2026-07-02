@@ -1,0 +1,55 @@
+---
+export const prerender = true;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const params = Astro.url.searchParams;
+const success = params.get("ok") === "1";
+const error = params.get("ok") === "0";
+---
+
+<BaseLayout
+  title="Contacto — Conciencia Inquieta"
+  description="¿Una idea, una colaboración, una historia que merece ser contada? Escríbenos."
+  active="contacto"
+>
+  <div class="wrap page-intro">
+    <div class="kicker">Hablemos</div>
+    <h1>Contacto</h1>
+    <p>¿Una idea, una colaboración, una historia que merece ser contada? Escríbenos.</p>
+  </div>
+  <div class="wrap section">
+    {success ? (
+      <div class="success">
+        <div class="tick">✓</div>
+        <h3>Mensaje enviado</h3>
+        <p>Gracias por escribir. Te responderemos pronto.</p>
+      </div>
+    ) : (
+      <form class="form" action="/api/contacto" method="post">
+        <div class="field">
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com" required />
+        </div>
+        <div class="field">
+          <label for="asunto">Asunto</label>
+          <select id="asunto" name="asunto">
+            <option>Colaboración editorial</option>
+            <option>Prensa y medios</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mensaje">Mensaje</label>
+          <textarea id="mensaje" name="mensaje" placeholder="Cuéntanos…" required></textarea>
+        </div>
+        {error && <p class="note error">No hemos podido enviar tu mensaje. Inténtalo de nuevo o escríbenos directamente.</p>}
+        <button class="btn-amber" type="submit">Enviar mensaje →</button>
+      </form>
+    )}
+  </div>
+</BaseLayout>

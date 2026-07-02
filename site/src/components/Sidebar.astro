@@ -1,0 +1,38 @@
+---
+interface Props {
+  active?: "home" | "articulos" | "sobre-nosotras" | "contacto";
+}
+const { active } = Astro.props;
+
+const navLinks = [
+  { key: "home", href: "/", icon: "◎", label: "Portada" },
+  { key: "articulos", href: "/articulos", icon: "✎", label: "Artículos" },
+  { key: "sobre-nosotras", href: "/sobre-nosotras", icon: "❋", label: "Sobre nosotras" },
+  { key: "contacto", href: "/contacto", icon: "✉", label: "Contacto" },
+] as const;
+---
+
+<aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+  <a class="brand" href="/" aria-label="Conciencia Inquieta — inicio">
+    <span class="mark">C</span>
+    <span class="wm"><b>Conciencia</b><i>Inquieta</i></span>
+  </a>
+  <button class="collapse-btn" id="collapseBtn" title="Contraer menú" aria-label="Contraer menú">‹</button>
+  <nav class="nav">
+    <span class="nav-label">Secciones</span>
+    {navLinks.map((link) => (
+      <a href={link.href} class={active === link.key ? "active" : ""}>
+        <span class="ico">{link.icon}</span><span class="t">{link.label}</span>
+      </a>
+    ))}
+  </nav>
+  <div class="side-foot">
+    <a class="side-cta" href="/unete"><span>Únete</span></a>
+    <div class="socials" aria-label="Redes sociales">
+      <a href="#" title="Instagram">◈</a>
+      <a href="#" title="X">✕</a>
+      <a href="#" title="TikTok">♪</a>
+      <a href="/unete" title="Boletín">✦</a>
+    </div>
+  </div>
+</aside>

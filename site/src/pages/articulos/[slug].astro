@@ -1,0 +1,93 @@
+---
+export const prerender = true;
+
+import { marked } from "marked";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import { getPublishedArticles, getRelatedArticles, formatDate } from "../../lib/content";
+import { gradFor, glyphFor } from "../../lib/categoryStyle";
+
+export async function getStaticPaths() {
+  const articles = await getPublishedArticles();
+  return articles.map((article) => ({
+    params: { slug: article.slug },
+    props: { article, related: getRelatedArticles(article, articles) },
+  }));
+}
+
+const { article, related } = Astro.props;
+
+const catName = article.category?.name ?? "";
+const authorName = article.author?.name ?? "Redacción";
+const authorInitials = authorName
+  .split(" ")
+  .map((w: string) => w[0])
+  .slice(0, 2)
+  .join("")
+  .toUpperCase();
+
+const bodyHtml = article.content ? await marked.parse(article.content) : "";
+
+const canonical = new URL(`/articulos/${article.slug}`, Astro.site).toString();
+const shareText = encodeURIComponent(article.title);
+const shareUrl = encodeURIComponent(canonical);
+---
+
+<BaseLayout
+  title={article.meta_title || `${article.title} — Conciencia Inquieta`}
+  description={article.meta_description || article.subtitle || ""}
+  active="articulos"
+>
+  <div class="wrap">
+    <article class="article">
+      <div class="eyebrow">
+        {catName && <span class="cat">{catName}</span>}
+        <span style="font-size:.8rem;color:var(--muted)">
+          {formatDate(article.published_at)} · {article.reading_time_min} min de lectura
+        </span>
+      </div>
+      <h1>{article.title}</h1>
+      {article.subtitle && <p class="deck">{article.subtitle}</p>}
+
+      <div class="byline">
+        <div class="byavatar">{authorInitials}</div>
+        <div class="bm">
+          <b>{authorName}</b><br /><span>Redacción · Conciencia Inquieta</span>
+        </div>
+        <div class="share">
+          <a href={`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer" title="Compartir en X">✕</a>
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" title="Compartir en Facebook">f</a>
+          <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" title="Compartir en WhatsApp">✆</a>
+          <a href={`mailto:?subject=${shareText}&body=${shareUrl}`} title="Compartir por email">✉</a>
+        </div>
+      </div>
+
+      <div class="ph hero-img" data-cat={catName} style={`background:${gradFor(catName)}`}>
+        {article.featured_image_url ? (
+          <img src={article.featured_image_url} alt="" />
+        ) : (
+          <span class="glyph">{glyphFor(catName)}</span>
+        )}
+      </div>
+
+      <div class="prose" set:html={bodyHtml} />
+
+      {article.tags.length > 0 && (
+        <div class="tags">
+          {article.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+        </div>
+      )}
+    </article>
+  </div>
+
+  {related.length > 0 && (
+    <div class="wrap">
+      <div class="related">
+        <div class="shead"><h2>Seguir leyendo<span class="dot">.</span></h2></div>
+        <div class="grid">
+          {related.map((a: typeof article) => <ArticleCard article={a} />)}
+        </div>
+      </div>
+    </div>
+  )}
+</BaseLayout>
