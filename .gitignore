@@ -1,6 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies (root admin + site/ Astro app both apply)
+# dependencies
 node_modules
 /.pnp
 .pnp.js
@@ -9,13 +9,9 @@ node_modules
 # testing
 /coverage
 
-# next.js (root admin)
+# next.js
 /.next/
 /out/
-
-# astro (site/)
-site/dist/
-site/.astro/
 
 # production
 /build

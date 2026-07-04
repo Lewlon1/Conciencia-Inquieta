@@ -20,7 +20,7 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 - **CLI-first.** Prefer commands and file edits over describing them.
 
 ## Stack
-- **Astro** — public site (static, built from Supabase content)
+- **Next.js** (App Router) — ONE app serving both the public site (static/ISR, built from Supabase content) and the `/admin` CMS. (The public site was originally Astro in `site/`; merged into Next.js — see "Repo structure".)
 - **Supabase** — backend + content store (this project) + **custom admin** (forked from Astro-Psyche Lab)
 - **MailerLite** — email list, double opt-in (CI's own account)
 - **Vercel** — hosting (`*.vercel.app` for now; custom domain later)
@@ -53,39 +53,44 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 - Secondary channel: `TODO (WhatsApp Channel | Telegram)`
 - Analytics tool: `TODO (Plausible | Umami)`
 
-## Repo structure — as of Session 3
-The admin is a **root-level Next.js app** (App Router) — that's what was actually forked from Astro-Psyche Lab, not an Astro project. The public Astro site lives in **`site/`**, a separate, independently-deployable project against the same Supabase schema.
+## Repo structure — as of the merge (one Next.js app)
+**One Next.js 14 App Router app, one Vercel project** serves both the admin (`/admin/*`) and the public magazine. This replaces the earlier Session-3 arrangement (Astro site in a sibling `site/` directory, two Vercel projects) — the public site was rewritten from Astro into Next.js and `site/` was deleted.
 
 ```
 /
 ├─ app/
-│  ├─ layout.tsx        # root layout — minimal, no Gabriela branding/fonts/pixel
-│  ├─ globals.css
-│  └─ admin/             # the only DB-backed surface in the MVP
-│     ├─ layout.tsx, page.tsx, login/
-│     └─ articles/       # article CRUD — category/author/tags/subtitle/featured image (Session 2)
-├─ components/admin/     # AdminNav, SignOutButton, ArticleEditorForm, ui/* (incl. AdminSelect)
-├─ config/flags.ts        # Lewis-only feature flags
-├─ lib/supabase/          # client.ts, server.ts, middleware.ts (SSR auth)
-├─ middleware.ts
-├─ types/index.ts         # Category, Author, Article, ArticleWithRelations
-├─ supabase/migrations/   # articles + categories + authors, RLS, staging-first
-├─ site/                  # Astro public site (Session 3) — separate Vercel project
-│  ├─ astro.config.mjs    # output:"server" + @astrojs/vercel — static pages via
-│  │                        prerender=true, dynamic only for /api/* capture routes
-│  ├─ src/pages/           # /, /articulos, /articulos/[slug], /categoria/[slug],
-│  │                        /sobre-nosotras, /unete, /contacto, /privacidad,
-│  │                        /cookies, /terminos, /api/* (Session 4)
-│  ├─ src/components/      # Sidebar, Topbar, Footer, ArticleCard, SubscribeForm,
-│  │                        SecondaryChannelButton
-│  ├─ src/lib/             # supabase.ts, content.ts (build-time queries), types.ts
-│  └─ src/styles/global.css  # CI brand tokens, trimmed from the approved prototype
-│                              (no shop/cart/login/saved/search — out of MVP)
-├─ lessons.md             # rolling log, updated each session
-├─ MVP Build plan         # note: literal filename, no .md extension — this is the doc CLAUDE.md calls "BUILD-PLAN.md"
-└─ CLAUDE.md
+│  ├─ (public)/            # PUBLIC group — OWN <html>/<body>, indexable, imports public.css
+│  │  ├─ layout.tsx        # shell (Sidebar/Topbar/Footer/NavOverlay/Analytics), Google-Fonts <link>, metadataBase, Organization JSON-LD
+│  │  ├─ public.css        # CI brand tokens (was site/src/styles/global.css), own reset — NO Tailwind
+│  │  ├─ page.tsx          # home (ISR revalidate=60)
+│  │  ├─ articulos/{page, [slug]/page}   # [slug]: generateStaticParams + ISR + react-markdown + NewsArticle JSON-LD
+│  │  ├─ categoria/[slug]/page.tsx
+│  │  ├─ sobre-nosotras, unete, contacto, privacidad, cookies, terminos
+│  │  └─ not-found.tsx     # in-group branded 404 (for notFound() on bad slugs)
+│  ├─ (admin)/             # ADMIN group — OWN <html>/<body>, noindex, imports admin.css (Tailwind)
+│  │  ├─ layout.tsx        # Inter via next/font, robots:{index:false}
+│  │  ├─ admin.css         # @tailwind base/components/utilities + .admin-theme (was app/globals.css)
+│  │  └─ admin/            # article CRUD, messages, login — unchanged behavior
+│  ├─ api/{suscribir,contacto}/route.ts  # capture endpoints (dynamic, 303 redirects)
+│  ├─ sitemap.ts, robots.ts              # Next-native SEO (replaces @astrojs/sitemap)
+│  └─ (NO app/layout.tsx — two root layouts is what isolates the two CSS systems)
+├─ components/
+│  ├─ admin/               # AdminNav, ArticleEditorForm, ui/* (incl. AdminSelect)
+│  └─ public/              # Sidebar,Topbar,NavOverlay,SubscribeForm,ContactForm,Analytics,ArticleTracker (client); Footer,ArticleCard,SecondaryChannelButton (server)
+├─ config/flags.ts         # Lewis-only feature flags
+├─ lib/
+│  ├─ supabase/{client,server,middleware}.ts  # admin SSR/cookie auth — /admin only
+│  ├─ supabase/public.ts   # lazy cookieless anon client — public build-time reads + capture routes
+│  ├─ content.ts, categoryStyle.ts, seo.ts     # build-time queries + pageMetadata() canonical/OG helper
+├─ middleware.ts           # matcher ["/admin/:path*"] — never runs on public routes
+├─ types/index.ts, types/global.d.ts
+├─ supabase/migrations/    # articles + categories + authors + contact_messages, RLS, staging-first
+├─ docs/utm-cheatsheet.md
+├─ lessons.md · MVP Build plan · CLAUDE.md
 ```
 
-**Architecture question resolved (Session 3):** the admin stays at the repo root; the public site is a sibling project in `site/`, not a monorepo workspace and not nested under `admin/`. Two independent Vercel projects — root directory `.` for the admin, `site` for the public site. Rationale: Session 1 had already scaffolded the admin's `package.json`/`next.config.mjs`/`tailwind.config.ts` at repo root with no live deploy recorded yet, so moving it would have been pure churn with no counterbalancing win; adding a sibling directory was the smaller diff. **[Likely]** — push back if a true monorepo (shared `package.json` workspaces) is preferred instead.
+**Why two root layouts (no shared `app/layout.tsx`):** the admin uses Tailwind (whose `@tailwind base` Preflight is a global reset) and the public site has its own hand-written reset. Route groups `(public)`/`(admin)`, each owning its `<html>/<body>` and importing only its own CSS, make Next code-split the CSS so Preflight never loads on public routes (verified: public HTML links only the public-token chunk, Tailwind lives in a separate chunk). It also forces a full page reload on any public↔admin navigation, sidestecking React's "stylesheets not removed on soft-nav" bug — safe here anyway since nothing `<Link>`s across the boundary. Tradeoff accepted: no custom global `app/not-found.tsx` (needs a root layout under this structure), so genuinely-unmatched URLs get Next's default 404; bad article/category slugs still get the branded in-group 404. **Publish→live: ISR** (`revalidate=60`) — new/edited articles appear within ~1 min with no rebuild.
+
+**Not ported from Astro-Psyche Lab (Session 1 scope call):** Testimonials, Events, Leads (CRM), Analytics dashboard, Engagement — all astrology-coaching-business-specific, no equivalent in the magazine model. The **service price management** and **content-generation tools** (repurpose, inspiration, transits, video-editor, photoshop — AWS Bedrock-backed) named in the golden rules above are **not in this repo at all yet**; `config/flags.ts` reserves the booleans, but the actual code stays in the source fork until a post-MVP session ports and reveals it one by one. If that reading is wrong, redirect — it was the leanest interpretation of the Session 1 checklist, not a locked-in architecture call.
 
 **Not ported from Astro-Psyche Lab (Session 1 scope call):** Testimonials, Events, Leads (CRM), Analytics dashboard, Engagement — all astrology-coaching-business-specific, no equivalent in the magazine model. The **service price management** and **content-generation tools** (repurpose, inspiration, transits, video-editor, photoshop — AWS Bedrock-backed) named in the golden rules above are **not in this repo at all yet**; `config/flags.ts` reserves the booleans, but the actual code stays in the source fork until a post-MVP session ports and reveals it one by one. If that reading is wrong, redirect — it was the leanest interpretation of the Session 1 checklist, not a locked-in architecture call.

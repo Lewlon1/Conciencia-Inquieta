@@ -91,3 +91,43 @@ Screenshots (home, article, category, únete, contact, legal, mobile) all confir
 3. Get a lawyer's eyes on `/privacidad` `/cookies` `/terminos` before the "Ship the MVP live" step — those pages are honest but explicitly unreviewed.
 4. Marie's homework (real articles, author bios, photos, the lead-magnet PDF) still gates a meaningful launch regardless of code state — see "Running in parallel" in the build plan.
 5. Once live: the validation gate is real — do Marie's social posts (tagged with the new UTM convention) actually drive visits, and do those visitors convert via `/unete`? That's what decides whether v2 gets built.
+
+---
+
+## Post-MVP — 2026-07-04 — Merge Astro public site into the Next.js admin (one app, one Vercel project)
+
+Lewis asked to consolidate: instead of a Next.js admin + a separate Astro `site/` (two Vercel projects), have **one Next.js app** serve both. Planned it first (workflow: Next-14-docs-cited research on the load-bearing unknowns → design → adversarial review), got sign-off, then executed on `claude/conciencia-inquieta-design-tf6ukq`.
+
+### What changed
+- **Two root layouts, no shared `app/layout.tsx`.** Route groups `app/(public)/` and `app/(admin)/`, each owning its own `<html>/<body>` and importing only its own CSS. This is the crux: it confines Tailwind's `@tailwind base` Preflight to the admin CSS chunk (verified — public HTML links only the public-token chunk `f1a4b0c…`, Tailwind is a separate chunk `89c452c…`) and forces a full page reload on any public↔admin nav so React's "stylesheets not removed on soft-nav" bug can't fire.
+- **Admin moved verbatim** under `(admin)/admin/` (URLs unchanged), `app/globals.css` → `(admin)/admin.css`, new `(admin)/layout.tsx` carries the `noindex` (the ONLY place it lives).
+- **Public site rewritten Astro → Next**: all `.astro` pages → RSC `page.tsx`; `getStaticPaths` → `generateStaticParams`; `marked` → `react-markdown` (already a dep); `set:html` → `dangerouslySetInnerHTML`; Astro components → `components/public/*.tsx` (client only where needed: Sidebar/Topbar/NavOverlay/SubscribeForm/ContactForm/Analytics/ArticleTracker). `@astrojs/sitemap`/`robots.txt.ts` → Next-native `app/sitemap.ts`/`app/robots.ts`.
+- **`site/` deleted entirely**; Astro deps gone with it. Types consolidated onto `types/index.ts`; `lib/supabase/public.ts` is a lazy cookieless anon client kept strictly separate from the admin's cookie SSR client.
+- **Publish→live = ISR** (`export const revalidate = 60`) per Lewis's choice (option A): new/edited articles appear within ~1 min, no rebuild. `dynamicParams` left default (true) so a brand-new slug renders on first request; junk slugs `notFound()` → 404.
+- **Middleware scoped to `["/admin/:path*"]`** — verified `curl /` returns no `Set-Cookie`, so public pages stay CDN-cacheable.
+- **Env: `PUBLIC_*` → `NEXT_PUBLIC_*`**, Supabase URL/key now shared with the admin (deduped). `MAILERLITE_*` stay unprefixed (server-only).
+
+### Adversarial-review fixes folded in (things a naive port breaks)
+- Next does NOT emit `<link rel=canonical>` from `metadataBase` alone, and a page's `openGraph` REPLACES the layout's — so a `pageMetadata()` helper (`lib/seo.ts`) sets canonical + full OG on EVERY public page, not just the dynamic ones. Verified every public route emits a canonical + og:url.
+- Preserved the Astro `PUBLIC_SITE_URL || hardcoded-vercel-URL` fallback in `lib/seo.ts` so a missing env var can't poison every canonical with `localhost:3000`.
+- Kept Spanish form field names (`nombre/asunto/mensaje`, `email/source`) so the `contact_messages` insert doesn't write blank rows; 303 (not 307) redirects in both route handlers; paginated `getPublishedArticles` past Supabase's ~1000-row cap; `[slug]` re-fetches the full list to recompute related.
+
+### Verified (build + prod server + Playwright, with fixture data since the sandbox can't reach Supabase)
+- Route table: **all public routes `○`/`●` (static/SSG), only `/admin/*` and `/api/*` are `ƒ` (dynamic)** — the Suspense-wrapped `useSearchParams` forms did NOT force dynamic.
+- `tsc --noEmit` clean on the real Supabase-backed code (reverted the fixture mock after).
+- Screenshots: home, article (drop-cap + pullquote + markdown headings correct), category filter, legal page (no drop-cap bleed — `.article .prose` scoping holds), mobile — all brand-correct.
+- `/admin/login` 200 with `noindex`, `/admin` → login redirect works, robots/sitemap correct.
+
+### Decisions / tradeoffs (flag if wrong)
+- **[Likely] No custom global `app/not-found.tsx`.** Under two root layouts a custom global 404 needs a root layout, which this structure lacks; Next errored on it. So genuinely-unmatched URLs (`/random-xyz`) get Next's plain default 404 (still a correct 404 status). Bad article/category slugs still get the branded in-group 404 via `(public)/not-found.tsx`. Adding a branded global 404 later would mean reintroducing a shared root layout — not worth it for MVP.
+- **[Likely] Fonts via Google-Fonts `<link>`** (as Astro did), not `next/font` — `next/font` failed to compute fallback metrics for `Newsreader` (variable+italic+opsz). The `<link>` is what shipped before; minor perf tradeoff (cross-origin, no size-adjust).
+
+### Blockers unchanged from before
+Supabase MCP still points at unrelated projects → migrations `0001`–`0006` still need manual apply; MailerLite/Pixel/analytics/secondary-channel still need real values; legal pages still need a lawyer.
+
+### Vercel impact (now simpler)
+**One** project, root directory `.`, one env-var set. Delete the old `site/` Vercel project if it was created. Env vars: the `NEXT_PUBLIC_*` set from `.env.example` (Supabase pair now shared).
+
+### Next step
+1. Deploy the single merged app to Vercel; delete any separate `site` project.
+2. Everything else on the pre-merge punch list still stands (migrations, MailerLite, channel/analytics/pixel decisions, legal review, Marie's homework).
