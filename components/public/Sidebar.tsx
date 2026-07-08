@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Category } from "@/types";
 
 const navLinks = [
   { key: "home", href: "/", icon: "◎", label: "Portada" },
@@ -17,8 +19,20 @@ function isActive(key: string, pathname: string): boolean {
   return pathname === `/${key}`;
 }
 
-export default function Sidebar() {
+interface Props {
+  categories: Category[];
+}
+
+export default function Sidebar({ categories }: Props) {
   const pathname = usePathname();
+  const [sectionsOpen, setSectionsOpen] = useState(false);
+
+  // The mobile drawer reuses this same element (see NavOverlay); collapse
+  // the categories sublist again each time it's closed so it doesn't reopen
+  // pre-expanded next time.
+  useEffect(() => {
+    setSectionsOpen(false);
+  }, [pathname]);
 
   return (
     <aside className="sidebar" id="sidebar" aria-label="Navegación principal">
@@ -37,8 +51,33 @@ export default function Sidebar() {
       >
         ‹
       </button>
+      <button
+        className="mobile-close-btn"
+        id="mobileCloseBtn"
+        title="Cerrar menú"
+        aria-label="Cerrar menú"
+      >
+        ×
+      </button>
       <nav className="nav">
-        <span className="nav-label">Secciones</span>
+        <button
+          className="nav-toggle"
+          type="button"
+          aria-expanded={sectionsOpen}
+          onClick={() => setSectionsOpen((o) => !o)}
+        >
+          <span>Secciones</span>
+          <span className="chev">›</span>
+        </button>
+        {sectionsOpen && (
+          <div className="nav-sub">
+            {categories.map((c) => (
+              <Link key={c.id} href={`/categoria/${c.slug}`}>
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        )}
         {navLinks.map((link) => (
           <Link
             key={link.key}
@@ -54,6 +93,11 @@ export default function Sidebar() {
         <Link className="side-cta" href="/unete" data-event="cta_click" data-cta="sidebar_unete">
           <span>Únete</span>
         </Link>
+        <div className="side-legal">
+          <Link href="/privacidad">Aviso legal &amp; privacidad</Link>
+          <Link href="/cookies">Cookies</Link>
+          <Link href="/terminos">Términos</Link>
+        </div>
         <div className="socials" aria-label="Redes sociales">
           <a href="#" title="Instagram">◈</a>
           <a href="#" title="X">✕</a>

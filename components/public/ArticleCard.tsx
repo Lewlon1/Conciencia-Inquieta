@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { formatDate } from "@/lib/content";
-import { gradFor, glyphFor } from "@/lib/categoryStyle";
+import type { CSSProperties } from "react";
+import { gradFor, glyphFor, catClassFor } from "@/lib/categoryStyle";
 import type { ArticleWithRelations } from "@/types";
 
 interface Props {
   article: ArticleWithRelations;
-  variant?: "card" | "mini" | "lead";
+  variant?: "card" | "feature";
+  style?: CSSProperties;
 }
 
-export default function ArticleCard({ article, variant = "card" }: Props) {
+export default function ArticleCard({ article, variant = "card", style }: Props) {
   const href = `/articulos/${article.slug}`;
   const catName = article.category?.name ?? "";
   const authorName = article.author?.name ?? "Redacción";
@@ -20,53 +21,30 @@ export default function ArticleCard({ article, variant = "card" }: Props) {
     <span className="glyph">{glyphFor(catName)}</span>
   );
 
-  if (variant === "lead") {
+  if (variant === "feature") {
     return (
-      <Link className="lead" href={href}>
+      <Link className="feature" href={href} style={style}>
         <div className="ph" data-cat={catName} style={{ background: gradFor(catName) }}>
           {placeholder}
         </div>
-        <div className="cat">{catName}</div>
+        <div className={catClassFor(catName)}>{catName}</div>
         <h3>{article.title}</h3>
         {article.subtitle && <p>{article.subtitle}</p>}
-        <div
-          className="meta"
-          style={{ marginTop: 14, fontSize: ".8rem", color: "var(--muted)" }}
-        >
-          {authorName} · {formatDate(article.published_at)} ·{" "}
-          {article.reading_time_min} min de lectura
-        </div>
-      </Link>
-    );
-  }
-
-  if (variant === "mini") {
-    return (
-      <Link className="mini" href={href}>
-        <div className="ph" data-cat={catName} style={{ background: gradFor(catName) }}>
-          {placeholder}
-        </div>
-        <div>
-          <div className="cat" style={{ marginBottom: 7 }}>
-            {catName}
-          </div>
-          <h4>{article.title}</h4>
-          <div className="meta">
-            {authorName} · {article.reading_time_min} min
-          </div>
+        <div className="meta">
+          <span>{authorName}</span>·<span>{article.reading_time_min} min</span>
         </div>
       </Link>
     );
   }
 
   return (
-    <Link className="card" href={href}>
+    <Link className="card" href={href} style={style}>
       <div className="ph" data-cat={catName} style={{ background: gradFor(catName) }}>
         {placeholder}
       </div>
       <div className="body">
         <div>
-          <span className="cat">{catName}</span>
+          <span className={catClassFor(catName)}>{catName}</span>
         </div>
         <h3>{article.title}</h3>
         {article.subtitle && <p>{article.subtitle}</p>}
