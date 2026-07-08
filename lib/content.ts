@@ -70,6 +70,17 @@ export function getRelatedArticles(
 
 // ---------- Services (public reads, published only) ----------
 
+// The services feature ships its migration (0009) as a manual apply, but Vercel
+// auto-deploys on push — so there's a window where this code is live before the
+// `services` table exists. Tolerate ONLY that "table not migrated yet" state
+// (PostgREST PGRST205 / Postgres 42P01 undefined_table) so a new-but-absent
+// table can't fail the whole site build; the pages fall back to their empty
+// state until 0009 is applied. Any OTHER error (permissions, network) still
+// throws loudly, exactly like the article queries above.
+function isMissingTableError(error: { code?: string } | null): boolean {
+  return error?.code === "PGRST205" || error?.code === "42P01";
+}
+
 export async function getPublishedServices(): Promise<Service[]> {
   const { data, error } = await getPublicSupabase()
     .from("services")
@@ -78,7 +89,10 @@ export async function getPublishedServices(): Promise<Service[]> {
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false })
     .returns<Service[]>();
-  if (error) throw error;
+  if (error) {
+    if (isMissingTableError(error)) return [];
+    throw error;
+  }
   return data ?? [];
 }
 
@@ -89,7 +103,10 @@ export async function getServiceBySlug(slug: string): Promise<Service | null> {
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle<Service>();
-  if (error) throw error;
+  if (error) {
+    if (isMissingTableError(error)) return null;
+    throw error;
+  }
   return data;
 }
 
