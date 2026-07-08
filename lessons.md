@@ -131,3 +131,29 @@ Supabase MCP still points at unrelated projects → migrations `0001`–`0006` s
 ### Next step
 1. Deploy the single merged app to Vercel; delete any separate `site` project.
 2. Everything else on the pre-merge punch list still stands (migrations, MailerLite, channel/analytics/pixel decisions, legal review, Marie's homework).
+
+## Session 6 — 2026-07-08 — Burger-only nav + centered logo (El Salto layout)
+
+### What changed
+- Reworked the public nav to match an El Salto-style masthead (per Lewis's reference image): **burger top-left → slide-out left drawer at EVERY width**, centered wordmark logo, `Suscríbete` right. The persistent 264px desktop sidebar is gone — the burger is now the only menu on all breakpoints.
+- Added the brand logo asset. Source `Conciencia logo.jpeg` (1080²) had huge whitespace; cropped to a tight wordmark with `sips -c 430 1010` → `public/conciencia-logo.jpeg` (1010×430). No ImageMagick on the box, so `sips` centered-crop, not a content-trim — bounds were eyeballed, then verified in preview.
+- `components/public/Topbar.tsx`: burger (`#hamb`, unchanged id/wiring) + new centered `.top-brand` logo link + CTA. Centering is `position:absolute;left:50%;translateX(-50%)` so it's page-centered regardless of the side widths.
+- `components/public/Sidebar.tsx`: replaced the `C`-mark + `Conciencia/Inquieta` text brand with the logo `<img>`; **removed the desktop collapse/rail button** (`#collapseBtn`) — a rail toggle is meaningless with no persistent sidebar.
+- `components/public/NavOverlay.tsx`: dropped the `collapseBtn`/`toggleRail` wiring; kept `#hamb` open, `#overlay`/`#mobileCloseBtn` close, Escape close.
+- `app/(public)/public.css`: `.sidebar` is now off-canvas (`translateX(-100%)`) at base with `body.nav-open .sidebar{transform:none}`; `.hamb` shows at all widths; `.main` margin-left is always 0 (full-width content); deleted the dead `body.rail` block, the `--rail-w` var, and the now-redundant `@media(max-width:1024px)` sidebar/hamb/main rules. Added `.top-brand`/`.top-logo`/`.brand-logo` + a `≤600px` logo shrink to 30px.
+
+### Decisions / tradeoffs (flag if wrong)
+- **[Certain] Removed the permanent desktop sidebar.** Lewis explicitly chose "slide-out left panel, burger is the only menu at all sizes" (matches El Salto, which has no rail). This is a deliberate structural change, not just a mobile tweak.
+- **[Likely] Logo blended with `mix-blend-mode:multiply`.** The JPEG ships on a near-white (~#f4f3f1) ground, cooler than the cream canvas (#fff9f1), so it'd show a rectangle. Multiply drops the near-white into the cream while keeping the lilac/amber letters. Works well in the topbar; a **very faint** ghost box remains in the opaque-cream drawer header (multiply can't fully cancel an off-white that's darker than the backdrop). **To make it pixel-clean, supply a transparent PNG or SVG logo** — then the blend hack can be dropped.
+- **[Likely] Raster JPEG logo, not SVG.** Only a JPEG was in local files. Fine at these sizes but not ideal for retina/scaling; an SVG/transparent PNG is the real fix.
+
+### Verified (dev server + preview, desktop 1280 / mobile 375)
+- Burger left, logo centered, `Suscríbete` right — no overlap at 375px. Drawer slides in from the left with logo header, `×` close, SECCIONES toggle, nav (Portada active), Únete, legal + socials, dimmed backdrop. Close via `×` clears `body.nav-open`. No console/server errors; `/` compiles and serves 200.
+
+### Follow-up (same session) — transparent logo + larger mark
+- Lewis dropped a **transparent-background PNG** (`Conciencia logo.png`, 1080², alpha) in local files. Cropped it the same way (`sips -c 430 1010`, alpha preserved) → `public/conciencia-logo.png`; deleted the superseded `public/conciencia-logo.jpeg`. Both `Topbar.tsx` and `Sidebar.tsx` now point at the `.png`.
+- **Removed the `mix-blend-mode:multiply` hack** from `.top-logo` and `.brand-logo` — unneeded now the ground is transparent, and it was slightly darkening the letters. The mark now sits perfectly clean on the cream (topbar + drawer), no ghost box.
+- **Enlarged the top-bar logo** (Lewis chose "enlarge top-bar logo, all pages" over a home-only masthead): `.top-logo` 38→**58px** desktop, 30→**42px** (`≤600px`); drawer `.brand-logo` 44→48px. Verified at 1280 + 375: no overlap with burger/CTA at mobile, no errors.
+
+### Next step
+- If a crisper mark is ever wanted at very large sizes, an **SVG** logo would beat the raster PNG — not needed at current sizes.

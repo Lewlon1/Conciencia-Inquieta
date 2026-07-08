@@ -37,20 +37,14 @@ export default function Sidebar({ categories }: Props) {
   return (
     <aside className="sidebar" id="sidebar" aria-label="Navegación principal">
       <Link className="brand" href="/" aria-label="Conciencia Inquieta — inicio">
-        <span className="mark">C</span>
-        <span className="wm">
-          <b>Conciencia</b>
-          <i>Inquieta</i>
-        </span>
+        <img
+          className="brand-logo"
+          src="/conciencia-logo.png"
+          alt="Conciencia Inquieta"
+          width={1010}
+          height={430}
+        />
       </Link>
-      <button
-        className="collapse-btn"
-        id="collapseBtn"
-        title="Contraer menú"
-        aria-label="Contraer menú"
-      >
-        ‹
-      </button>
       <button
         className="mobile-close-btn"
         id="mobileCloseBtn"
