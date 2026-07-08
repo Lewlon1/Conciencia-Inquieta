@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t } from "@/lib/admin/strings";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function AdminLoginPage() {
           <h1 className="font-heading text-2xl tracking-wide text-[#1a1a18]">
             Conciencia Inquieta
           </h1>
-          <p className="text-sm text-[#6b6560] mt-1">Admin Portal</p>
+          <p className="text-sm text-[#6b6560] mt-1">{t.login.title}</p>
         </div>
 
         {/* Login card */}
@@ -51,7 +52,7 @@ export default function AdminLoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-[#1a1a18] mb-1.5"
               >
-                Email
+                {t.login.email}
               </label>
               <input
                 id="email"
@@ -69,7 +70,7 @@ export default function AdminLoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-[#1a1a18] mb-1.5"
               >
-                Password
+                {t.login.password}
               </label>
               <input
                 id="password"
@@ -78,7 +79,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-3 py-2.5 border border-[#e8e5df] rounded-lg text-[#1a1a18] bg-[#fafaf8] placeholder:text-[#b8b0a4] focus:outline-none focus:ring-2 focus:ring-deep/20 focus:border-deep transition-colors"
-                placeholder="Enter your password"
+                placeholder={t.login.passwordPlaceholder}
               />
             </div>
 
@@ -93,7 +94,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="w-full py-2.5 bg-deep text-white rounded-lg font-medium hover:bg-deep/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? t.login.signingIn : t.login.signIn}
             </button>
           </form>
         </div>

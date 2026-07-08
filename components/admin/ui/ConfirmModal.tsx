@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/lib/admin/strings";
+
 interface ConfirmModalProps {
   isOpen: boolean;
   onConfirm: () => void;
@@ -31,14 +33,14 @@ export default function ConfirmModal({
             disabled={loading}
             className="text-sm px-4 py-2 rounded-lg border border-[#e8e5df] text-[#1a1a18] hover:bg-[#f5f3ef] transition-colors disabled:opacity-50"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
             className="text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
           >
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? t.common.deleting : t.common.delete}
           </button>
         </div>
       </div>

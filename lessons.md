@@ -132,6 +132,35 @@ Supabase MCP still points at unrelated projects → migrations `0001`–`0006` s
 1. Deploy the single merged app to Vercel; delete any separate `site` project.
 2. Everything else on the pre-merge punch list still stands (migrations, MailerLite, channel/analytics/pixel decisions, legal review, Marie's homework).
 
+---
+
+## Post-MVP — 2026-07-08 — Admin UX overhaul (image upload + Spanish + editor polish)
+
+Lewis asked to make `/admin` friendlier for Marie, starting from "how do we make image upload more user-friendly." Named the real gap first: there was **no upload** — the "Featured image URL" field was a plain text box, so Marie had to host a file elsewhere and paste a URL (and hand-type `![](url)` for in-body images). Planned the full set (plan mode), got sign-off, then built it. Fanned the independent pieces out to parallel sub-agents (7 in Phase 0, 3 for Phase 2 localization) and did the shared-file integration (`ArticleEditorForm.tsx`) single-threaded to avoid conflicts.
+
+### Decisions (from Lewis, before building)
+- **Scheduling: relabel, don't build it.** The "Publish date" field implied scheduling that never worked (`getPublishedArticles()` filters only `is_published`, ignores `published_at`). Renamed to "Fecha de publicación" (display/SEO date). Real scheduling stays out of scope — noted below.
+- **Localization: Spanish-only replace** via one central dict `lib/admin/strings.ts` (no i18n lib — admin is single-language). Lewis accepted losing the English admin UI.
+
+### What changed
+- **Image upload → Supabase Storage.** New migration `0008_article_images_storage.sql` (public `article-images` bucket, 10 MB cap, image mime allowlist; RLS: `authenticated` write, public read). New `lib/admin/uploadImage.ts` (`validateImageFile` + `uploadArticleImage` — **Canvas** downscale to 1600px + WebP re-encode at q0.82, dependency-free; animated-GIF/`toBlob`-null fall back to the original) and `components/admin/ui/ImageUploader.tsx` (drag-drop + click + paste, thumbnail preview, "Subiendo…" state, auto-alt from filename, remove/replace, manual-URL fallback). Writes the public URL into `featured_image_url` — **nothing downstream changed**.
+- **In-body images + formatting** via `components/admin/ui/MarkdownToolbar.tsx` (bold/italic/H2/H3/link/quote/list + an image button that uploads through the same helper and inserts `![alt](url)` at the caret). Zero new deps.
+- **Editor reliability**: unsaved-changes `beforeunload` guard + debounced `localStorage` draft autosave keyed by article id/`new`, with a "restore draft" banner; required-field validation (title + category) with inline Spanish errors.
+- **Preview now tells the truth.** It rendered `prose prose-invert` on dark navy; swapped to a scoped `.article-preview` block in `admin.css` that **replicates** the public `public.css` `.prose` (Newsreader/Fraunces, cream `#fff9f1`), with Fraunces+Newsreader added to the admin `<head>`. Note: these values are *copied*, not imported (importing `public.css` would break the deliberate Preflight isolation) — **keep them in sync if the public `.prose` changes.**
+- **Smaller wins**: tags are removable chips (`TagInput.tsx`), SEO meta fields have live char counters (`CharCounter.tsx`, 60/160) + a Google-snippet preview (`SeoPreview.tsx`), and the article list has a featured-image thumbnail column.
+- **Spanish everywhere**: all admin strings moved to `lib/admin/strings.ts` and swapped across dashboard, articles list, messages, login, nav, sign-out, confirm modal, and the editor. (Raw Supabase auth/error messages still surface in English — an error-code→Spanish map is the remaining gap, left out of scope.)
+
+### Verified
+- `npx tsc --noEmit` clean; `next build` **compiles + passes lint/type validity** for the whole integrated change. Build only fails at the credential-gated static-generation of **public** pages (`lib/supabase/public.ts` guard, no `.env` here) — the same standing blocker as every prior session, in files this change never touched. The admin runtime image-upload flow can't be exercised here (needs live creds + the bucket).
+
+### Blockers — need Lewis
+- **Apply `0008` by hand.** Supabase MCP in this env *still* only sees the unrelated "CFO Production/Staging" projects (checked again this session), not `lfyerbxqfwjjftcpjzbv` — so I can't apply it and won't touch the CFO projects (golden rule). Run `supabase/migrations/0008_article_images_storage.sql` in the CI project's SQL editor. **Until the bucket exists, uploads will fail at runtime** even though the UI is wired.
+- After applying, smoke-test end-to-end: log in → new article → drag an image (expect preview + populated URL) → insert an in-body image → save → confirm the image renders on the public article.
+
+### Out of scope (noted, not built)
+- Real scheduled publishing (relabelled only) — wiring `published_at <= now()` into `getPublishedArticles()` is the future fix.
+- Spanish mapping for raw Supabase auth error strings.
+- Full WYSIWYG (kept Markdown + toolbar as the lean choice).
 ## Session 6 — 2026-07-08 — Burger-only nav + centered logo (El Salto layout)
 
 ### What changed

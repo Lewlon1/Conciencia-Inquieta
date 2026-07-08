@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { t } from "@/lib/admin/strings";
 import type { ContactMessage } from "@/types";
 import AdminToggle from "@/components/admin/ui/AdminToggle";
 
@@ -41,7 +42,7 @@ export default function MessagesTable({
   if (messages.length === 0) {
     return (
       <div className="px-6 py-12 text-center">
-        <p className="text-sm text-[#b8b0a4]">No messages yet.</p>
+        <p className="text-sm text-[#b8b0a4]">{t.messages.empty}</p>
       </div>
     );
   }
@@ -67,7 +68,7 @@ export default function MessagesTable({
                 {formatDate(m.created_at)}
               </span>
               <AdminToggle
-                label="Read"
+                label={t.common.read}
                 size="small"
                 checked={m.is_read}
                 onChange={(checked) => toggleRead(m.id, checked)}

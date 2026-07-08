@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { t } from "@/lib/admin/strings";
 import type { ContactMessage } from "@/types";
 import AdminPageHeader from "@/components/admin/ui/AdminPageHeader";
 import MessagesTable from "@/components/admin/MessagesTable";
@@ -15,8 +16,8 @@ export default async function AdminMessagesPage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Messages"
-        description="Submissions from the public site's contact form"
+        title={t.messages.title}
+        description={t.messages.subtitle}
       />
       <div className="bg-white border border-[#e8e5df] rounded-xl overflow-hidden">
         <MessagesTable initialMessages={messages ?? []} />
