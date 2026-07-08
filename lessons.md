@@ -220,3 +220,8 @@ CLAUDE.md keeps the inherited **service price management** admin FLAGGED OFF and
 - Payments/checkout (deliberate — lead capture only).
 - Per-image alt text (single shared alt for now).
 - Booking confirmation email to the visitor (Marie contacts manually); an email-forward of the request to Marie is a trivial future add.
+
+### Follow-up (same session) — Vercel build failed on the not-yet-migrated table
+First push's Vercel preview failed the **whole build** with `PGRST205 Could not find the table 'public.services'`. Root cause is an ordering flaw I should've caught: Vercel auto-deploys on push, but `0009` is a manual apply, so `/servicios/[slug]` `generateStaticParams` + `sitemap` hit the CI Supabase (creds present, unlike the sandbox) against a project with no `services` table yet — and the queries `throw`, which fails page-data collection for the entire site (articles included), not just services.
+- **Fix**: `getPublishedServices`/`getServiceBySlug` now swallow ONLY the "table not migrated yet" codes (PostgREST `PGRST205` / Postgres `42P01`) → return empty/null; every other error still throws loudly (matching the article queries). So the site builds/deploys **before** the migration; `/servicios` renders its empty state and lights up fully once `0009` runs. Verified with a fixture build simulating the empty result (build green, `/servicios` `○` static, `/servicios/[slug]` `●` with 0 prerendered slugs).
+- Admin routes were already safe — they're dynamic (`ƒ`, per-request, not built) and ignore query errors (`const { data } = …`), so a missing table yields empty admin lists / a 0 count on the dashboard, not a crash. The blocker is unchanged: apply `0009` for the feature to actually function.
