@@ -20,3 +20,9 @@ export function gradFor(category: string): string {
 export function glyphFor(category: string): string {
   return (category || "·").trim()[0] || "·";
 }
+
+// Opinión's placeholder gradient is dark, so its pill uses the amber-soft
+// background instead of the default lilac (matches the approved CI prototype).
+export function catClassFor(category: string): string {
+  return category === "Opinión" ? "cat amber" : "cat";
+}
