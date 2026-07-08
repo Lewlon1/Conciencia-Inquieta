@@ -1,5 +1,5 @@
 import { getPublicSupabase } from "@/lib/supabase/public";
-import type { ArticleWithRelations, Category } from "@/types";
+import type { ArticleWithRelations, Category, Service } from "@/types";
 
 export async function getCategories(): Promise<Category[]> {
   const { data, error } = await getPublicSupabase()
@@ -66,6 +66,31 @@ export function getRelatedArticles(
     (a) => a.id !== article.id && a.category_id !== article.category_id
   );
   return [...sameCategory, ...rest].slice(0, limit);
+}
+
+// ---------- Services (public reads, published only) ----------
+
+export async function getPublishedServices(): Promise<Service[]> {
+  const { data, error } = await getPublicSupabase()
+    .from("services")
+    .select("*")
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false })
+    .returns<Service[]>();
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getServiceBySlug(slug: string): Promise<Service | null> {
+  const { data, error } = await getPublicSupabase()
+    .from("services")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .maybeSingle<Service>();
+  if (error) throw error;
+  return data;
 }
 
 export function formatDate(iso: string | null): string {

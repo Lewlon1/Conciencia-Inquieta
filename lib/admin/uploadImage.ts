@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
-const BUCKET = "article-images";
+const ARTICLE_BUCKET = "article-images";
+const SERVICE_BUCKET = "service-images";
 
 /**
  * Validate a candidate image file before upload.
@@ -18,12 +19,13 @@ export function validateImageFile(file: File): string | null {
 }
 
 /**
- * Compress + downscale (when needed) and upload an image to Supabase Storage.
- * Runs in the browser (client component context).
+ * Compress + downscale (when needed) and upload an image to a Supabase Storage
+ * bucket. Runs in the browser (client component context).
  * Throws on upload error so the caller can surface it.
  */
-export async function uploadArticleImage(
+export async function uploadImageToBucket(
   file: File,
+  bucket: string,
   opts?: { maxWidth?: number; quality?: number }
 ): Promise<{ url: string; path: string }> {
   const maxWidth = opts?.maxWidth ?? 1600;
@@ -50,7 +52,7 @@ export async function uploadArticleImage(
 
   const path = `${crypto.randomUUID()}.${extension}`;
 
-  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+  const { error } = await supabase.storage.from(bucket).upload(path, blob, {
     cacheControl: "3600",
     contentType,
     upsert: false,
@@ -60,9 +62,25 @@ export async function uploadArticleImage(
     throw error;
   }
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
 
   return { url: data.publicUrl, path };
+}
+
+/** Upload a featured/inline article image (article-images bucket). */
+export function uploadArticleImage(
+  file: File,
+  opts?: { maxWidth?: number; quality?: number }
+): Promise<{ url: string; path: string }> {
+  return uploadImageToBucket(file, ARTICLE_BUCKET, opts);
+}
+
+/** Upload a service offering image (service-images bucket). */
+export function uploadServiceImage(
+  file: File,
+  opts?: { maxWidth?: number; quality?: number }
+): Promise<{ url: string; path: string }> {
+  return uploadImageToBucket(file, SERVICE_BUCKET, opts);
 }
 
 // ---------------------------------------------------------------------------

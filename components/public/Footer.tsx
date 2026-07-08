@@ -19,6 +19,7 @@ export default function Footer() {
           <div className="fcol">
             <h5>Secciones</h5>
             <Link href="/articulos">Artículos</Link>
+            <Link href="/servicios">Servicios</Link>
             <Link href="/sobre-nosotras">Sobre nosotras</Link>
             <Link href="/contacto">Contacto</Link>
             <Link href="/unete">Únete</Link>

@@ -8,11 +8,14 @@ import { t } from "@/lib/admin/strings";
 const navLinks = [
   { label: t.nav.dashboard, href: "/admin" },
   { label: t.nav.articles, href: "/admin/articles" },
+  // Magazine services showcase + booking requests. This is NOT the inherited
+  // Astro-Psyche Lab "service price management" tool gated by
+  // FLAGS.servicePriceManagement (that stays OFF, unported — see CLAUDE.md);
+  // it's a fresh, always-on feature Lewis asked for.
+  { label: t.nav.services, href: "/admin/services" },
+  { label: t.nav.bookings, href: "/admin/reservas" },
   { label: t.nav.messages, href: "/admin/messages" },
   // Reserved, not built yet — see config/flags.ts and CLAUDE.md golden rules.
-  ...(FLAGS.servicePriceManagement
-    ? [{ label: t.nav.services, href: "/admin/services" }]
-    : []),
   ...(FLAGS.contentGenerationTools
     ? [{ label: t.nav.contentTools, href: "/admin/content-tools" }]
     : []),

@@ -49,3 +49,33 @@ export interface ContactMessage {
   is_read: boolean;
   created_at: string;
 }
+
+export interface Service {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+  description: string | null;
+  /** Optional, free-form price line ("Desde 50€", "Consultar"). */
+  price_text: string | null;
+  /** Gallery of image URLs; the first entry is the cover. */
+  image_urls: string[];
+  image_alt: string | null;
+  is_published: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A visitor's booking request captured from the public services page. */
+export interface ServiceBooking {
+  id: string;
+  service_id: string | null;
+  service_title: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  message: string | null;
+  is_read: boolean;
+  created_at: string;
+}

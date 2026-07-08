@@ -3,7 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { t } from "@/lib/admin/strings";
 import type { ArticleWithRelations } from "@/types";
 
-const quickActions = [{ label: t.dashboard.writeArticle, href: "/admin/articles/new" }];
+const quickActions = [
+  { label: t.dashboard.writeArticle, href: "/admin/articles/new" },
+  { label: t.dashboard.newService, href: "/admin/services/new" },
+];
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
@@ -11,6 +14,8 @@ export default async function AdminDashboardPage() {
   const [
     { count: totalArticles },
     { count: publishedArticles },
+    { count: totalServices },
+    { count: unreadBookings },
     { data: recentArticles },
   ] = await Promise.all([
     supabase.from("articles").select("*", { count: "exact", head: true }),
@@ -18,6 +23,11 @@ export default async function AdminDashboardPage() {
       .from("articles")
       .select("*", { count: "exact", head: true })
       .eq("is_published", true),
+    supabase.from("services").select("*", { count: "exact", head: true }),
+    supabase
+      .from("service_bookings")
+      .select("*", { count: "exact", head: true })
+      .eq("is_read", false),
     supabase
       .from("articles")
       .select("*, category:categories(*), author:authors(*)")
@@ -29,6 +39,8 @@ export default async function AdminDashboardPage() {
   const metrics = [
     { label: t.dashboard.totalArticles, value: totalArticles ?? 0 },
     { label: t.dashboard.published, value: publishedArticles ?? 0 },
+    { label: t.dashboard.services, value: totalServices ?? 0 },
+    { label: t.dashboard.pendingBookings, value: unreadBookings ?? 0 },
   ];
 
   return (
