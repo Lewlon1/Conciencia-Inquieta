@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -13,6 +13,12 @@ import AdminSelect from "@/components/admin/ui/AdminSelect";
 import AdminToggle from "@/components/admin/ui/AdminToggle";
 import Toast from "@/components/admin/ui/Toast";
 import ConfirmModal from "@/components/admin/ui/ConfirmModal";
+import ImageUploader from "@/components/admin/ui/ImageUploader";
+import MarkdownToolbar from "@/components/admin/ui/MarkdownToolbar";
+import TagInput from "@/components/admin/ui/TagInput";
+import CharCounter from "@/components/admin/ui/CharCounter";
+import SeoPreview from "@/components/admin/ui/SeoPreview";
+import { t } from "@/lib/admin/strings";
 
 function generateSlug(title: string) {
   return title
@@ -35,17 +41,6 @@ function toLocalDatetime(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function tagsToInput(tags: string[]) {
-  return tags.join(", ");
-}
-
-function inputToTags(value: string): string[] {
-  return value
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
-}
-
 interface ArticleEditorFormProps {
   initialData?: Article;
   categories: Category[];
@@ -64,13 +59,9 @@ export default function ArticleEditorForm({
   const [slug, setSlug] = useState(initialData?.slug ?? "");
   const [subtitle, setSubtitle] = useState(initialData?.subtitle ?? "");
   const [content, setContent] = useState(initialData?.content ?? "");
-  const [categoryId, setCategoryId] = useState(
-    initialData?.category_id ?? ""
-  );
+  const [categoryId, setCategoryId] = useState(initialData?.category_id ?? "");
   const [authorId, setAuthorId] = useState(initialData?.author_id ?? "");
-  const [tagsInput, setTagsInput] = useState(
-    tagsToInput(initialData?.tags ?? [])
-  );
+  const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
   const [featuredImageUrl, setFeaturedImageUrl] = useState(
     initialData?.featured_image_url ?? ""
   );
@@ -96,10 +87,118 @@ export default function ArticleEditorForm({
   } | null>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [errors, setErrors] = useState<{ title?: string; category?: string }>(
+    {}
+  );
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const readingTime = calcReadingTime(content);
 
-  // Auto-generate slug from title
+  // ---- Unsaved-changes guard + local draft autosave ----
+  // A snapshot of everything the editor holds; compared against the initial
+  // snapshot to know when there are unsaved edits, and stashed in localStorage
+  // so a crash / accidental navigation doesn't lose the work.
+  const storageKey = `ci-admin-draft:${initialData?.id ?? "new"}`;
+  const snapshot = JSON.stringify({
+    title,
+    slug,
+    subtitle,
+    content,
+    categoryId,
+    authorId,
+    tags,
+    featuredImageUrl,
+    featuredImageAlt,
+    isPublished,
+    publishedAt,
+    metaTitle,
+    metaDescription,
+  });
+
+  const initialSnapshotRef = useRef<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [draftAvailable, setDraftAvailable] = useState<string | null>(null);
+
+  // Capture the baseline once on mount and surface any newer saved draft.
+  useEffect(() => {
+    initialSnapshotRef.current = snapshot;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved && saved !== snapshot) setDraftAvailable(saved);
+    } catch {
+      /* localStorage unavailable — non-fatal */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Mark dirty whenever the form diverges from its baseline.
+  useEffect(() => {
+    if (initialSnapshotRef.current === null) return;
+    setDirty(snapshot !== initialSnapshotRef.current);
+  }, [snapshot]);
+
+  // Debounced autosave while there are unsaved edits.
+  useEffect(() => {
+    if (!dirty) return;
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem(storageKey, snapshot);
+      } catch {
+        /* quota / unavailable — non-fatal */
+      }
+    }, 800);
+    return () => clearTimeout(id);
+  }, [dirty, snapshot, storageKey]);
+
+  // Native browser warning if the tab is closed with unsaved edits.
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      /* non-fatal */
+    }
+  }, [storageKey]);
+
+  function restoreDraft() {
+    if (!draftAvailable) return;
+    try {
+      const d = JSON.parse(draftAvailable);
+      setTitle(d.title ?? "");
+      setSlug(d.slug ?? "");
+      setSlugEdited(true);
+      setSubtitle(d.subtitle ?? "");
+      setContent(d.content ?? "");
+      setCategoryId(d.categoryId ?? "");
+      setAuthorId(d.authorId ?? "");
+      setTags(Array.isArray(d.tags) ? d.tags : []);
+      setFeaturedImageUrl(d.featuredImageUrl ?? "");
+      setFeaturedImageAlt(d.featuredImageAlt ?? "");
+      setIsPublished(!!d.isPublished);
+      setPublishedAt(d.publishedAt ?? "");
+      setMetaTitle(d.metaTitle ?? "");
+      setMetaDescription(d.metaDescription ?? "");
+    } catch {
+      /* corrupt draft — ignore */
+    }
+    setDraftAvailable(null);
+  }
+
+  function discardDraft() {
+    clearDraft();
+    setDraftAvailable(null);
+  }
+
+  // Auto-generate slug from title until the slug is hand-edited.
   useEffect(() => {
     if (!slugEdited) {
       setSlug(generateSlug(title));
@@ -125,6 +224,20 @@ export default function ArticleEditorForm({
   );
 
   async function save(publish?: boolean) {
+    // Required-field validation (title + category) with inline feedback.
+    const nextErrors: { title?: string; category?: string } = {};
+    if (!title.trim()) nextErrors.title = t.editor.titleRequired;
+    if (!categoryId) nextErrors.category = t.editor.categoryRequired;
+    if (nextErrors.title || nextErrors.category) {
+      setErrors(nextErrors);
+      setToast({
+        message: nextErrors.title ?? nextErrors.category!,
+        type: "error",
+      });
+      return;
+    }
+    setErrors({});
+
     setSaving(true);
 
     const shouldPublish = publish ?? isPublished;
@@ -142,7 +255,7 @@ export default function ArticleEditorForm({
       content: content || null,
       category_id: categoryId || null,
       author_id: authorId || null,
-      tags: inputToTags(tagsInput),
+      tags,
       featured_image_url: featuredImageUrl || null,
       featured_image_alt: featuredImageAlt || null,
       is_published: shouldPublish,
@@ -165,7 +278,10 @@ export default function ArticleEditorForm({
           .update(record)
           .eq("id", initialData.id);
         if (error) throw error;
-        setToast({ message: "Article saved successfully", type: "success" });
+        clearDraft();
+        initialSnapshotRef.current = snapshot;
+        setDirty(false);
+        setToast({ message: t.editor.toastSaved, type: "success" });
       } else {
         const { data, error } = await supabase
           .from("articles")
@@ -173,12 +289,13 @@ export default function ArticleEditorForm({
           .select("id")
           .single();
         if (error) throw error;
-        setToast({ message: "Article created successfully", type: "success" });
+        clearDraft();
+        setDirty(false);
+        setToast({ message: t.editor.toastCreated, type: "success" });
         router.replace(`/admin/articles/${data.id}`);
       }
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong";
+      const message = err instanceof Error ? err.message : t.editor.toastError;
       setToast({ message, type: "error" });
     } finally {
       setSaving(false);
@@ -194,10 +311,11 @@ export default function ArticleEditorForm({
         .delete()
         .eq("id", initialData.id);
       if (error) throw error;
+      clearDraft();
       router.replace("/admin/articles");
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Failed to delete article";
+        err instanceof Error ? err.message : t.editor.toastDeleteFailed;
       setToast({ message, type: "error" });
       setDeleting(false);
       setShowDelete(false);
@@ -216,8 +334,8 @@ export default function ArticleEditorForm({
 
       <ConfirmModal
         isOpen={showDelete}
-        title="Delete article"
-        message="Are you sure you want to delete this article? This action cannot be undone."
+        title={t.editor.confirmDeleteTitle}
+        message={t.editor.confirmDeleteMessage}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setShowDelete(false)}
@@ -229,9 +347,32 @@ export default function ArticleEditorForm({
           href="/admin/articles"
           className="text-sm text-[#6b6560] hover:text-[#1a1a18] transition-colors"
         >
-          &larr; Articles
+          &larr; {t.editor.backToArticles}
         </Link>
       </div>
+
+      {/* Unsaved-draft restore banner */}
+      {draftAvailable && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[#fabb5c] bg-[#fff7e8] px-4 py-3 text-sm">
+          <span className="text-[#7a5a1e]">{t.editor.restoreDraftPrompt}</span>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={restoreDraft}
+              className="font-medium text-[#1a1a18] underline"
+            >
+              {t.editor.restore}
+            </button>
+            <button
+              type="button"
+              onClick={discardDraft}
+              className="text-[#6b6560] hover:text-[#1a1a18]"
+            >
+              {t.editor.discard}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Title & slug */}
       <div className="space-y-2">
@@ -239,16 +380,19 @@ export default function ArticleEditorForm({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Article title"
+          placeholder={t.editor.titlePlaceholder}
           className="w-full text-2xl font-heading text-[#1a1a18] bg-transparent border-0 border-b border-[#e8e5df] pb-2 focus:outline-none focus:border-[#1a1a18] transition-colors placeholder:text-[#b8b0a4]"
         />
+        {errors.title && (
+          <p className="text-sm text-red-600">{errors.title}</p>
+        )}
         <div className="flex items-center gap-1 text-sm text-[#6b6560]">
           <span>/articulos/</span>
           <input
             type="text"
             value={slug}
             onChange={handleSlugChange}
-            placeholder="article-slug"
+            placeholder={t.editor.slugPlaceholder}
             className="bg-transparent border-0 text-sm text-[#1a1a18] focus:outline-none placeholder:text-[#b8b0a4]"
           />
         </div>
@@ -256,127 +400,141 @@ export default function ArticleEditorForm({
 
       {/* Subtitle / deck */}
       <AdminTextarea
-        label="Subtitle / deck"
+        label={t.editor.subtitle}
         id="subtitle"
         value={subtitle}
         onChange={(e) => setSubtitle(e.target.value)}
-        placeholder="One or two sentences — shown under the title and as the card teaser"
+        placeholder={t.editor.subtitlePlaceholder}
         rows={2}
       />
 
       {/* Category + author + reading time */}
-      <div className="grid sm:grid-cols-3 gap-4 items-end">
+      <div className="grid sm:grid-cols-3 gap-4 items-start">
+        <div>
+          <AdminSelect
+            label={t.editor.category}
+            id="category"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            placeholder={t.editor.categoryPlaceholder}
+            required
+            options={categories
+              .slice()
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((c) => ({ value: c.id, label: c.name }))}
+          />
+          {errors.category && (
+            <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+          )}
+        </div>
         <AdminSelect
-          label="Category"
-          id="category"
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          placeholder="Select a category"
-          required
-          options={categories
-            .slice()
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((c) => ({ value: c.id, label: c.name }))}
-        />
-        <AdminSelect
-          label="Author"
+          label={t.editor.author}
           id="author"
           value={authorId}
           onChange={(e) => setAuthorId(e.target.value)}
-          placeholder="Select an author"
+          placeholder={t.editor.authorPlaceholder}
           options={authors.map((a) => ({ value: a.id, label: a.name }))}
         />
-        <div className="pb-2.5 text-sm text-[#6b6560]">
-          {readingTime} min read
+        <div className="pt-9 text-sm text-[#6b6560]">
+          {readingTime} {t.common.minRead}
         </div>
       </div>
 
       {/* Tags */}
-      <AdminInput
-        label="Tags"
+      <TagInput
+        label={t.editor.tags}
         id="tags"
-        value={tagsInput}
-        onChange={(e) => setTagsInput(e.target.value)}
-        placeholder="cuidados, economía feminista, comunidad (comma-separated)"
+        value={tags}
+        onChange={setTags}
+        placeholder={t.editor.tagsPlaceholder}
       />
 
       {/* Featured image */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <AdminInput
-          label="Featured image URL"
-          id="featured_image_url"
-          value={featuredImageUrl}
-          onChange={(e) => setFeaturedImageUrl(e.target.value)}
-          placeholder="https://…"
-        />
-        <AdminInput
-          label="Featured image alt text"
-          id="featured_image_alt"
-          value={featuredImageAlt}
-          onChange={(e) => setFeaturedImageAlt(e.target.value)}
-          placeholder="Describe the image for screen readers"
-        />
-      </div>
+      <ImageUploader
+        value={featuredImageUrl}
+        alt={featuredImageAlt}
+        onChange={setFeaturedImageUrl}
+        onAltChange={setFeaturedImageAlt}
+        label={t.editor.featuredImage}
+        altLabel={t.editor.featuredImageAlt}
+      />
 
-      {/* Split-pane markdown editor */}
+      {/* Split-pane markdown editor with formatting toolbar */}
       <div>
         <label className="block text-sm font-medium text-[#1a1a18] mb-1.5">
-          Content
+          {t.editor.content}
         </label>
+        <div className="mb-2">
+          <MarkdownToolbar
+            value={content}
+            onChange={setContent}
+            textareaRef={textareaRef}
+          />
+        </div>
         <div className="grid grid-cols-2 border border-[#e8e5df] rounded-xl overflow-hidden min-h-[500px]">
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Write the article in Markdown..."
+            placeholder={t.editor.contentPlaceholder}
             className="font-mono text-sm p-4 bg-[#fafaf8] resize-none h-full border-r border-[#e8e5df] focus:outline-none placeholder:text-[#b8b0a4]"
           />
-          <div className="bg-[#0a1628] p-6 overflow-y-auto">
-            <div className="prose prose-invert prose-lg max-w-none">
-              {content ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {content}
-                </ReactMarkdown>
-              ) : (
-                <p className="text-gray-500 italic">
-                  Preview will appear here...
-                </p>
-              )}
-            </div>
+          <div className="article-preview overflow-y-auto">
+            {content ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
+            ) : (
+              <p className="text-[#b8b0a4] italic">{t.editor.previewEmpty}</p>
+            )}
           </div>
         </div>
       </div>
 
       {/* SEO section */}
       <div className="bg-white border border-[#e8e5df] rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-medium text-[#1a1a18]">SEO</h3>
-        <AdminInput
-          label="Meta title"
-          id="meta_title"
-          value={metaTitle}
-          onChange={(e) => setMetaTitle(e.target.value)}
-          placeholder="Custom page title for search engines"
-        />
-        <AdminTextarea
-          label="Meta description"
-          id="meta_description"
-          value={metaDescription}
-          onChange={(e) => setMetaDescription(e.target.value)}
-          placeholder="Short description for search results"
-          rows={2}
+        <h3 className="text-sm font-medium text-[#1a1a18]">{t.editor.seo}</h3>
+        <div>
+          <AdminInput
+            label={t.editor.metaTitle}
+            id="meta_title"
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            placeholder={t.editor.metaTitlePlaceholder}
+          />
+          <CharCounter value={metaTitle} max={60} />
+        </div>
+        <div>
+          <AdminTextarea
+            label={t.editor.metaDescription}
+            id="meta_description"
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            placeholder={t.editor.metaDescriptionPlaceholder}
+            rows={2}
+          />
+          <CharCounter value={metaDescription} max={160} />
+        </div>
+        <SeoPreview
+          title={metaTitle || title}
+          description={metaDescription}
+          slug={slug}
         />
       </div>
 
       {/* Publishing controls */}
       <div className="bg-white border border-[#e8e5df] rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-medium text-[#1a1a18]">Publishing</h3>
+        <h3 className="text-sm font-medium text-[#1a1a18]">
+          {t.editor.publishing}
+        </h3>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <AdminToggle
-            label="Published"
+            label={t.editor.published}
             checked={isPublished}
             onChange={handlePublishedToggle}
           />
           <AdminInput
-            label="Publish date"
+            label={t.editor.publishDate}
             id="published_at"
             type="datetime-local"
             value={publishedAt}
@@ -395,7 +553,7 @@ export default function ArticleEditorForm({
             disabled={saving || !title.trim()}
             className="text-sm font-medium px-5 py-2.5 rounded-lg border border-[#e8e5df] text-[#1a1a18] hover:bg-[#f5f3ef] transition-colors disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save draft"}
+            {saving ? t.common.saving : t.editor.saveDraft}
           </button>
           <button
             type="button"
@@ -403,7 +561,7 @@ export default function ArticleEditorForm({
             disabled={saving || !title.trim()}
             className="text-sm font-medium px-5 py-2.5 rounded-lg bg-deep text-white hover:bg-deep/90 transition-colors disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Publish"}
+            {saving ? t.common.saving : t.editor.publish}
           </button>
         </div>
         {initialData && (
@@ -412,7 +570,7 @@ export default function ArticleEditorForm({
             onClick={() => setShowDelete(true)}
             className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
           >
-            Delete article
+            {t.editor.deleteArticle}
           </button>
         )}
       </div>

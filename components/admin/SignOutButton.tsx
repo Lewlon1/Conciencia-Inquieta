@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t } from "@/lib/admin/strings";
 
 export default function SignOutButton() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function SignOutButton() {
       onClick={handleSignOut}
       className="text-sm text-[#6b6560] hover:text-[#1a1a18] transition-colors"
     >
-      Sign out
+      {t.common.signOut}
     </button>
   );
 }

@@ -3,17 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FLAGS } from "@/config/flags";
+import { t } from "@/lib/admin/strings";
 
 const navLinks = [
-  { label: "Dashboard", href: "/admin" },
-  { label: "Articles", href: "/admin/articles" },
-  { label: "Messages", href: "/admin/messages" },
+  { label: t.nav.dashboard, href: "/admin" },
+  { label: t.nav.articles, href: "/admin/articles" },
+  { label: t.nav.messages, href: "/admin/messages" },
   // Reserved, not built yet — see config/flags.ts and CLAUDE.md golden rules.
   ...(FLAGS.servicePriceManagement
-    ? [{ label: "Services", href: "/admin/services" }]
+    ? [{ label: t.nav.services, href: "/admin/services" }]
     : []),
   ...(FLAGS.contentGenerationTools
-    ? [{ label: "Content tools", href: "/admin/content-tools" }]
+    ? [{ label: t.nav.contentTools, href: "/admin/content-tools" }]
     : []),
 ];
 
@@ -28,7 +29,7 @@ export default function AdminNav() {
           Conciencia Inquieta
         </span>
         <span className="text-[10px] font-medium uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
-          Admin
+          {t.nav.admin}
         </span>
       </div>
 
@@ -49,7 +50,7 @@ export default function AdminNav() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="md:hidden p-1.5 rounded-lg hover:bg-[#f5f3ef] transition-colors"
-        aria-label="Toggle navigation"
+        aria-label={t.nav.toggleNavigation}
       >
         {open ? (
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">

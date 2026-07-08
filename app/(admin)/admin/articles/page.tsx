@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ArticleWithRelations } from "@/types";
 import AdminPageHeader from "@/components/admin/ui/AdminPageHeader";
+import { t } from "@/lib/admin/strings";
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
@@ -24,8 +25,8 @@ export default async function AdminArticlesPage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Articles"
-        action={{ label: "New article", href: "/admin/articles/new" }}
+        title={t.articles.title}
+        action={{ label: t.articles.newArticle, href: "/admin/articles/new" }}
       />
 
       <div className="bg-white border border-[#e8e5df] rounded-xl overflow-hidden">
@@ -34,22 +35,25 @@ export default async function AdminArticlesPage() {
             <thead>
               <tr className="border-b border-[#e8e5df] text-left">
                 <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
-                  Title
+                  {t.articles.tableImage}
                 </th>
                 <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
-                  Category
+                  {t.articles.tableTitle}
                 </th>
                 <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
-                  Author
+                  {t.articles.tableCategory}
                 </th>
                 <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
-                  Status
+                  {t.articles.tableAuthor}
                 </th>
                 <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
-                  Published
+                  {t.articles.tableStatus}
                 </th>
                 <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
-                  Reading time
+                  {t.articles.tablePublished}
+                </th>
+                <th className="px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">
+                  {t.articles.tableReadingTime}
                 </th>
               </tr>
             </thead>
@@ -59,6 +63,20 @@ export default async function AdminArticlesPage() {
                   key={article.id}
                   className="group hover:bg-[#f5f3ef] transition-colors"
                 >
+                  <td className="px-6 py-4">
+                    {article.featured_image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={article.featured_image_url}
+                        alt={article.featured_image_alt ?? ""}
+                        className="w-11 h-11 object-cover rounded-md border border-[#e8e5df]"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-md bg-[#f5f3ef] flex items-center justify-center text-[#b8b0a4] text-sm">
+                        &mdash;
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <Link
                       href={`/admin/articles/${article.id}`}
@@ -84,11 +102,11 @@ export default async function AdminArticlesPage() {
                   <td className="px-6 py-4">
                     {article.is_published ? (
                       <span className="inline-block text-xs px-2.5 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
-                        Published
+                        {t.common.published}
                       </span>
                     ) : (
                       <span className="inline-block text-xs px-2.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
-                        Draft
+                        {t.common.draft}
                       </span>
                     )}
                   </td>
@@ -99,7 +117,7 @@ export default async function AdminArticlesPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-[#6b6560]">
                     {article.reading_time_min ? (
-                      `${article.reading_time_min} min`
+                      `${article.reading_time_min} ${t.common.min}`
                     ) : (
                       <span className="text-[#b8b0a4]">&mdash;</span>
                     )}
@@ -110,9 +128,7 @@ export default async function AdminArticlesPage() {
           </table>
         ) : (
           <div className="px-6 py-12 text-center">
-            <p className="text-sm text-[#b8b0a4]">
-              No articles yet. Create your first article to get started.
-            </p>
+            <p className="text-sm text-[#b8b0a4]">{t.articles.empty}</p>
           </div>
         )}
       </div>

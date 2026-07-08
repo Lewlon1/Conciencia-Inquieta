@@ -25,6 +25,17 @@ export default function AdminRootLayout({
 }>) {
   return (
     <html lang="es" className={inter.variable}>
+      <head>
+        {/* Fraunces + Newsreader load here (Inter still comes from next/font
+            above) so the article editor's live preview can render the real
+            published-article fonts. Weights mirror app/(public)/layout.tsx. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,900;1,9..144,400;1,9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="antialiased font-sans">{children}</body>
     </html>
   );

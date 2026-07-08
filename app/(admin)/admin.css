@@ -33,3 +33,122 @@
     color: #fff;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   .article-preview — faithful replica of a REAL published article body.
+   Values here are REPLICATED from app/(public)/public.css `.prose` / `.article`
+   (cream canvas, Newsreader body, Fraunces headings, marigold blockquote rule).
+   They are intentionally hard-coded (not the --tokens the public site uses)
+   because admin.css must NOT import public.css — that would drag the public
+   reset/Preflight boundary into the Tailwind admin chunk.
+   KEEP IN SYNC: if the public `.prose` styles change, update this block too,
+   or the editor preview will drift from what actually gets published.
+   Scoped to .article-preview so only the preview pane is affected. */
+.article-preview {
+  background: #fff9f1; /* --lienzo (cream canvas) */
+  padding: 28px 32px;
+  border-radius: 14px;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 1.21rem;
+  line-height: 1.78;
+  color: #332b3c;
+}
+.article-preview p {
+  margin: 0 0 1.45em;
+}
+.article-preview h2 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  margin: 1.6em 0 0.5em;
+  color: #2b2434; /* --tinta */
+}
+.article-preview h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin: 1.4em 0 0.5em;
+  color: #2b2434; /* --tinta */
+}
+.article-preview h4 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  margin: 1.3em 0 0.5em;
+  color: #2b2434; /* --tinta */
+}
+.article-preview blockquote {
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.65rem;
+  line-height: 1.25;
+  color: #382a44; /* --berenjena */
+  border-left: 4px solid #fabb5c; /* --ambar */
+  padding: 6px 0 6px 22px;
+  margin: 1.4em 0;
+}
+.article-preview blockquote p {
+  margin: 0;
+}
+.article-preview a {
+  color: #382a44; /* --berenjena */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.article-preview ul,
+.article-preview ol {
+  margin: 0 0 1.45em;
+  padding-left: 1.4em;
+}
+.article-preview img {
+  max-width: 100%;
+  display: block;
+  border-radius: 14px;
+  margin: 1.4em 0;
+}
+/* GFM code / pre / table fallbacks — light, minimal, in the cream/ink palette
+   so fenced code and Markdown tables don't render unstyled in the preview. */
+.article-preview code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: rgba(56, 42, 68, 0.07);
+  color: #2b2434;
+  padding: 0.15em 0.4em;
+  border-radius: 5px;
+}
+.article-preview pre {
+  background: rgba(56, 42, 68, 0.06);
+  border: 1px solid rgba(43, 36, 52, 0.12);
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 1.4em 0;
+}
+.article-preview pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.article-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 0.95rem;
+  margin: 1.4em 0;
+}
+.article-preview th,
+.article-preview td {
+  border: 1px solid rgba(43, 36, 52, 0.12);
+  padding: 8px 12px;
+  text-align: left;
+}
+.article-preview th {
+  background: rgba(56, 42, 68, 0.05);
+  font-weight: 600;
+  color: #2b2434;
+}
