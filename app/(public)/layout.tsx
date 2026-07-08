@@ -5,6 +5,7 @@ import Topbar from "@/components/public/Topbar";
 import Footer from "@/components/public/Footer";
 import NavOverlay from "@/components/public/NavOverlay";
 import Analytics from "@/components/public/Analytics";
+import { getCategories } from "@/lib/content";
 import { SITE_URL, SITE_NAME } from "@/lib/seo";
 
 // Public root layout — its OWN <html>/<body>, indexable, imports only
@@ -34,9 +35,10 @@ const organizationSchema = {
     "Diario digital autogestionado: verdad con contexto, memoria y humanidad.",
 };
 
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const categories = await getCategories();
   return (
     <html lang="es">
       <head>
@@ -58,7 +60,7 @@ export default function PublicLayout({
           Saltar al contenido
         </a>
         <div className="app">
-          <Sidebar />
+          <Sidebar categories={categories} />
           <div className="main">
             <Topbar />
             <main id="main">{children}</main>
