@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-09
 **Branch:** `claude/analytics-suite-dashboard-ksqqrq`
-**Status:** Plan approved (direction), not yet built.
+**Status:** Phases 0 + 1 built (see `lessons.md` Session 8). Migration `0011` awaits manual apply; Phase 2 (MailerLite reconciliation, rollup) deferred.
 
 ---
 

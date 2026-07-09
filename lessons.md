@@ -266,3 +266,43 @@ Lewis asked for the admin to be able to preview how the featured/cover image wil
 1. Lewis: run the two pending migrations (`0008` full re-run, `0009` storage section, `0010`), fix the Supabase MCP connection, then do the manual admin smoke test above.
 2. Merge `worktree-image-focal-point` once the manual smoke test passes.
 3. Consider the admin-list-thumbnail follow-up if Marie ever notices those small icons cropping oddly.
+
+---
+
+## Session 8 — 2026-07-09 — First-party analytics suite + admin dashboard (Phase 0+1)
+
+Lewis asked to "plan a full analytics suite and dashboard in the admin portal," then to build it. Planned first (`docs/superpowers/plans/2026-07-09-analytics-suite-design-and-plan.md`), got three decisions, then built.
+
+### Decisions (from Lewis, before building)
+- **First-party table, no external provider.** Lewis pushed back on needing Plausible/Umami at all — "can we not just build custom like for astro lab and connect via supabase?" Yes. Dropped the provider dependency entirely; the Plausible/Umami hooks in `Analytics.tsx` stay but are dormant. We own the load-bearing 10% of a web-analytics tool: cookieless uniques (salted daily hash), bot filtering, source classification, geo/device from Vercel headers.
+- **Both audiences, tabbed** — `/admin/analytics` with a **Resumen** tab (conversion funnel for Lewis) and a **Contenido** tab (per-article editorial view for Marie).
+
+### What changed
+- **Migration `0011_analytics_events.sql`** (NOT applied — standing Supabase-MCP blocker): `analytics_events` table (bigint id, event name + path/slug/utm/source/country/device/`visitor_hash`/`props jsonb`), RLS mirroring `contact_messages`/`service_bookings` (public INSERT, admin SELECT, **REVOKE SELECT from anon** because 0007 auto-grants it). Plus **`analytics_summary(_from,_to) → jsonb`** — one SQL function powering the whole dashboard (KPIs + previous-period deltas, funnel, signups-by-channel, daily trend, per-article perf with same-day signup attribution). SECURITY INVOKER so it runs under the caller's RLS; EXECUTE revoked from PUBLIC, granted to `authenticated`.
+- **Ingestion**: `lib/analytics/ingest.ts` (salted daily `visitor_hash` = sha256(day+ip+ua+`ANALYTICS_SALT`), truncated, **IP/UA never stored**; UA bot denylist; UTM→referrer source classifier with Spanish labels "Directo"/"Búsqueda"; device parse; prop sanitizer) + `app/api/track/route.ts` (anon-client insert, **every path returns 204**, never throws into the page).
+- **Client wiring** (`components/public/Analytics.tsx`): `ciTrack` now beacons every event to `/api/track` via `sendBeacon`/keepalive, alongside the dormant provider hooks. Added a first-party **`pageview`** on first load + every route change (`usePathname`). Existing events (`signup`/`cta_click`/`channel_click`/`article_read`/`scroll_depth`) reach the sink for free through the same choke point. New env: `ANALYTICS_SALT` (server-only) + `NEXT_PUBLIC_ANALYTICS_INGEST` kill switch.
+- **Dashboard**: `lib/analytics/queries.ts` (single data-access boundary — calls the RPC, returns `EMPTY_SUMMARY` and never throws when unmigrated, so it's safe to deploy before `0011` — same guard idea as the services `PGRST205` fix). `app/(admin)/admin/analytics/page.tsx` (dynamic, tabs+range via query params, no client JS for nav) + `components/admin/analytics/*` (StatTiles, Funnel, BarList, TrendChart, ArticleTable, DashboardTabs, palette). "Analíticas" added to `AdminNav`; all copy in `lib/admin/strings.ts`.
+- **Charts follow the dataviz skill**: validated the 2-hue categorical palette with the skill's script (amber `#d97706` = signups/goal, violet `#6d5bd0` = primary; CVD ΔE 119, all checks pass on the light admin surface). Single-series magnitude = one hue no legend; the 2-series trend has a legend + hover crosshair/tooltip. Zero new chart deps (inline SVG/CSS bars).
+
+### Privacy posture (deliberate)
+No cookie, no stored IP, no stored raw UA — only the daily-rotating non-reversible hash + coarse country/device/source. Keeps it in the same consent-free bucket as the existing cookieless setup; Meta Pixel stays consent-gated. `/cookies` + `/privacidad` copy should be updated to describe first-party analytics (deferred — flag for the same lawyer pass the other legal pages need).
+
+### Verified
+- `npx tsc --noEmit` clean (whole project, after `npm install` in the fresh container). No ESLint config in the repo, so lint isn't a gate.
+- **Visual**: fixture-mocked `getAnalyticsSummary` behind a temp `ANALYTICS_FIXTURE` env guard + temp auth bypass (middleware/layout), ran `next dev`, Playwright-screenshotted both tabs at 1440px and the trend hover. Confirmed: nav entry, stat tiles with arrow+colour deltas, funnel (violet stages + amber goal), amber source bars, trend area/line + legend + working crosshair tooltip ("28 de junio / Visitantes / Suscripciones"), editorial bar-list + table. Fixed a tooltip clip (was `-translate-y-full` off the card top → pinned inside). **All temp fixture/bypass code reverted** (grep-confirmed clean; middleware/layout `git checkout`-ed).
+
+### Blockers — need Lewis
+- **Apply `0011_analytics_events.sql` by hand** in the CI Supabase SQL editor (`lfyerbxqfwjjftcpjzbv`) — same standing MCP-points-at-wrong-project blocker as every prior migration. Until then the dashboard renders its empty state (safe) and no events are stored.
+- **Set `ANALYTICS_SALT`** (any long random string) in the env / Vercel — without it events still record but uniques aren't counted.
+- **Vercel-only headers**: `x-vercel-ip-country` + real client IP are absent locally, so country/uniques only fully populate on a Vercel deploy. Verify on a preview.
+- Couldn't exercise real end-to-end ingestion (sandbox has no live Supabase egress) — after applying `0011`, smoke-test: visit the public site, then confirm rows land in `analytics_events` and the dashboard populates.
+
+### Out of scope / noted, not built (Phase 2+)
+- **MailerLite reconciliation** (site signups vs confirmed subscribers) — placeholder card is in the Resumen tab; needs a real `MAILERLITE_API_KEY` pull.
+- **Rollup + pruning** (`analytics_daily` + daily job) — the dashboard queries raw events directly; fine at launch traffic, add the rollup when the table grows.
+- Rate-limiting on `/api/track` (public beacon; bot filter + known-event whitelist + prop sanitizer limit the blast radius for now).
+- Legal-page copy update for first-party analytics.
+
+### Next step
+1. Lewis: apply `0011`, set `ANALYTICS_SALT`, deploy; smoke-test ingestion end-to-end on a Vercel preview.
+2. Phase 2 when wanted: wire the MailerLite reconciliation pull; add the daily rollup once volume justifies it.
