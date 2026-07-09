@@ -266,3 +266,25 @@ Lewis asked for the admin to be able to preview how the featured/cover image wil
 1. Lewis: run the two pending migrations (`0008` full re-run, `0009` storage section, `0010`), fix the Supabase MCP connection, then do the manual admin smoke test above.
 2. Merge `worktree-image-focal-point` once the manual smoke test passes.
 3. Consider the admin-list-thumbnail follow-up if Marie ever notices those small icons cropping oddly.
+
+---
+
+## Housekeeping — 2026-07-09 — Branch cleanup + Marie handover doc
+
+Non-code session: tidy old branches + prepare the handover to Marie.
+
+### Branch cleanup (verified before deleting, per Lewis's ask)
+- **All remote branches were fully merged** into `origin/main` (0 commits ahead each): the 5 `claude/*` Claude Code session branches + `pr/image-focal-point` + `pr/local-design-canonical`. Deleted all 7 from the remote.
+- **Local merged branches deleted**: `claude/question-ticker-banner`, `pr/image-focal-point`, `pr/local-design-canonical`, `worktree-image-focal-point`.
+- **Stale worktree removed**: `.claude/worktrees/image-focal-point` (branch `worktree-image-focal-point`, at merged commit 95e2535 — the focal-point work is already in main via PR #3). Empty `.claude/worktrees/` dir cleaned up too.
+- **`feat/burger-nav-centered-logo` force-deleted** (`-D`). It was a *separate-root* parallel copy of the whole app ("no merge base" with main), from 2026-07-08. Verified superseded: its nav redesign (`Topbar.tsx` + `NavOverlay.tsx`) is **byte-identical to main**, and its transparent logo (`public/conciencia-logo.png`) is already on main. Its only unique delta was the *absence* of the Services feature — which main intentionally has. Nothing of value lost.
+- **End state**: only `main` locally and `origin/main` remotely; one worktree (the main checkout).
+
+### Handover doc
+- Wrote `docs/handover-marie.md` — Marie-facing: what the site is, the full feature list (public + admin + integrations), a 15-min guided admin tour, deliberate scope boundaries, the "before launch" checklist (the 3 pending migrations + MailerLite/analytics env vars + smoke tests, all carried over from the sessions above), and roadmap ideas. Written in **English** (matched Lewis's request); flagged that a Spanish version likely serves Marie better if it goes to her directly — offered, not yet done.
+
+### Note / no change
+- Confirmed `/servicios` on main is the deliberately-built public Services feature (page + `ServiceCard` + admin CRUD from the merged `services-tab-admin-portal` branch), **not** the flagged-off `servicePriceManagement` tool (still `false`, unported). No golden-rule issue.
+
+### Next step
+- Unchanged from the two sessions above: the pending migrations + env vars + Supabase MCP reconnection remain the real blockers to a fully-working launch (now consolidated in `docs/handover-marie.md` §5).
