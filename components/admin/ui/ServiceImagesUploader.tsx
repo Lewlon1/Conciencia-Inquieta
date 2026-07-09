@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { uploadServiceImage, validateImageFile } from "@/lib/admin/uploadImage";
 import { t } from "@/lib/admin/strings";
 import ImageFocalEditor from "@/components/admin/ui/ImageFocalEditor";
-import { SERVICE_CARD_FRAME, SERVICE_HERO_FRAME } from "@/lib/focalImage";
+import { DEFAULT_FOCAL, SERVICE_CARD_FRAME, SERVICE_HERO_FRAME } from "@/lib/focalImage";
 
 interface ServiceImagesUploaderProps {
   value: string[]; // ordered image URLs; first is the cover
@@ -51,7 +51,6 @@ export default function ServiceImagesUploader({
     setError(null);
     setUploading(true);
     let next = value;
-    const hadNoCoverBefore = value.length === 0;
     try {
       for (const file of files) {
         const validationError = validateImageFile(file);
@@ -59,12 +58,13 @@ export default function ServiceImagesUploader({
           setError(validationError);
           continue;
         }
+        const hadNoCoverBefore = next.length === 0;
         const { url } = await uploadServiceImage(file);
         next = [...next, url];
         onChange(next);
-      }
-      if (hadNoCoverBefore && next.length > 0) {
-        onFocalChange({ focalX: 50, focalY: 50, focalZoom: 1 });
+        if (hadNoCoverBefore) {
+          onFocalChange({ ...DEFAULT_FOCAL });
+        }
       }
     } catch {
       setError(t.serviceEditor.uploadError);
@@ -127,7 +127,7 @@ export default function ServiceImagesUploader({
     setError(null);
     const wasCover = index === 0;
     onChange(value.filter((_, i) => i !== index));
-    if (wasCover) onFocalChange({ focalX: 50, focalY: 50, focalZoom: 1 });
+    if (wasCover) onFocalChange({ ...DEFAULT_FOCAL });
   };
 
   const makeCover = (index: number) => {
@@ -136,7 +136,7 @@ export default function ServiceImagesUploader({
     const [picked] = reordered.splice(index, 1);
     reordered.unshift(picked);
     onChange(reordered);
-    onFocalChange({ focalX: 50, focalY: 50, focalZoom: 1 });
+    onFocalChange({ ...DEFAULT_FOCAL });
   };
 
   return (
