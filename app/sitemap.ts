@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next";
-import { getPublishedArticles, getCategories } from "@/lib/content";
+import {
+  getPublishedArticles,
+  getCategories,
+  getPublishedServices,
+} from "@/lib/content";
 import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 60;
@@ -10,6 +14,7 @@ export const revalidate = 60;
 const STATIC_PATHS = [
   "/",
   "/articulos",
+  "/servicios",
   "/sobre-nosotras",
   "/unete",
   "/contacto",
@@ -19,9 +24,10 @@ const STATIC_PATHS = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, categories] = await Promise.all([
+  const [articles, categories, services] = await Promise.all([
     getPublishedArticles(),
     getCategories(),
+    getPublishedServices(),
   ]);
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
@@ -37,5 +43,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: new URL(`/categoria/${c.slug}`, SITE_URL).toString(),
   }));
 
-  return [...staticEntries, ...articleEntries, ...categoryEntries];
+  const serviceEntries: MetadataRoute.Sitemap = services.map((s) => ({
+    url: new URL(`/servicios/${s.slug}`, SITE_URL).toString(),
+    lastModified: s.updated_at || undefined,
+  }));
+
+  return [
+    ...staticEntries,
+    ...articleEntries,
+    ...categoryEntries,
+    ...serviceEntries,
+  ];
 }

@@ -8,6 +8,7 @@ import type { Category } from "@/types";
 const navLinks = [
   { key: "home", href: "/", icon: "◎", label: "Portada" },
   { key: "articulos", href: "/articulos", icon: "✎", label: "Artículos" },
+  { key: "servicios", href: "/servicios", icon: "✦", label: "Servicios" },
   { key: "sobre-nosotras", href: "/sobre-nosotras", icon: "❋", label: "Sobre nosotras" },
   { key: "contacto", href: "/contacto", icon: "✉", label: "Contacto" },
 ] as const;
@@ -16,6 +17,7 @@ function isActive(key: string, pathname: string): boolean {
   if (key === "home") return pathname === "/";
   if (key === "articulos")
     return pathname.startsWith("/articulos") || pathname.startsWith("/categoria");
+  if (key === "servicios") return pathname.startsWith("/servicios");
   return pathname === `/${key}`;
 }
 

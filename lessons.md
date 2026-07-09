@@ -186,3 +186,42 @@ Lewis asked to make `/admin` friendlier for Marie, starting from "how do we make
 
 ### Next step
 - If a crisper mark is ever wanted at very large sizes, an **SVG** logo would beat the raster PNG — not needed at current sizes.
+
+---
+
+## Session 7 — 2026-07-08 — Services tab + admin backend + booking capture
+
+Lewis asked for a **Servicios** tab in the public menu and an admin backend where Marie manages offerings (with image uploads + optional prices), plus a booking flow where a visitor leaves name/email/phone so Marie can contact them.
+
+### Gap named up front (golden-rule tension)
+CLAUDE.md keeps the inherited **service price management** admin FLAGGED OFF and lists shop/payments/services as out of MVP. Read this request as a **different thing**: not the Astro-Psyche Lab Bedrock pricing tool, but a fresh, magazine-appropriate **showcase + lead-capture** — the same shape as `contact_messages`, with **no on-site checkout or payment**. Built it clean (not by un-flagging the inherited tool); `FLAGS.servicePriceManagement` stays `false` and unported. Flag if that read is wrong — if you actually meant to reveal the inherited pricing admin, that's a separate port.
+
+### What changed
+- **Migration `0009_services.sql`** (NOT applied — see blocker): `services` (title/slug/summary/description/`price_text` optional/`image_urls text[]` gallery/image_alt/is_published/sort_order) and `service_bookings` (service_id+`service_title` snapshot/name/email/**phone**/message/is_read). RLS mirrors the established split — public reads published services, public INSERTs bookings, admin full. Because 0007's `ALTER DEFAULT PRIVILEGES` auto-grants anon SELECT on future tables, the migration **explicitly `REVOKE SELECT … FROM anon` on `service_bookings`** (PII — same intent as contact_messages). Adds a dedicated **`service-images` Storage bucket** (mirrors 0008).
+- **Admin backend**: `/admin/services` (list) · `/admin/services/new` · `/admin/services/[id]` (edit) via `ServiceEditorForm`, with a new multi-image `ServiceImagesUploader` (drag/click/paste, first image = cover, "hacer portada"/quitar, single alt). `/admin/reservas` lists booking requests (`BookingsTable`, mark-read, clickable mailto/tel). Dashboard gained services + unread-bookings counts and a "Nuevo servicio" quick action.
+- **Public tab**: `/servicios` (card grid) + `/servicios/[slug]` (gallery + price + Markdown description + embedded `ServiceBookingForm`). Booking `POST /api/reservar` → `service_bookings` → `303` redirect to `/servicios/<slug>?ok=1|0`, read **client-side** (Suspense + `useSearchParams`) — the same static-page confirmation pattern the Astro prerender bug forced us to (deliberately reused so the bug can't recur). "Servicios" added to the burger nav, footer Secciones, and the sitemap (static path + per-service entries).
+- **Shared bits**: `uploadImage.ts` refactored to `uploadImageToBucket(file, bucket)` with `uploadArticleImage`/`uploadServiceImage` wrappers (article uploads unchanged). New `Service`/`ServiceBooking` types, `lib/content.ts` `getPublishedServices`/`getServiceBySlug`, admin strings for services/serviceEditor/bookings. AdminNav's dead flag-gated `/admin/services` stub replaced with the live, always-on items.
+
+### Decisions (flag if wrong)
+- **[Likely] `price_text` free-form, not numeric.** "Optionally add the prices" → a single nullable text line ("Desde 50€", "Consultar") gives Marie full control over currency/format; nothing computes on price, so a number bought nothing.
+- **[Likely] Gallery (`image_urls text[]`), one shared alt.** "upload images" (plural) → multiple images per service, first is the cover. Per-image alt was the lean thing to skip; one alt covers the cover, extras get "". Future refinement if wanted.
+- **[Likely] Bookings land in Supabase + `/admin/reservas`**, not email — reuses the exact anon-key + RLS pattern (zero new secrets), same call as contact_messages. Trivial to add an email-forward later.
+- **[Certain] No payment/checkout.** Booking = lead capture; Marie contacts the person. Keeps the MVP "no shop/payments" rule intact.
+
+### Verified (fixture-mocked build + prod server + Playwright, since the sandbox has no Supabase creds/egress)
+- `tsc --noEmit` clean; `next build` compiles + passes type/lint validity. With `lib/content.ts` temporarily fixture-backed (reverted after — `git diff` clean), the **full route table builds green**: `/servicios` is `○` static, `/servicios/[slug]` is `●` SSG (both fixture slugs prerendered), only `/admin/*` + `/api/*` are `ƒ` — public services pages stay CDN-static like articles.
+- Playwright (real Chromium): listing shows 2 cards, price tag only on the priced one; detail page's booking form **hydrates** with nombre/email/telefono/mensaje and correct hidden values (`servicio=s1`, `slug=…`); gallery splits 1 hero + 2 thumbs from a 3-image service; **`?ok=1` renders the "Solicitud enviada" success state**; no JS/React console errors (only blocked fixture image/font hosts). Screenshots brand-correct (cream/lilac/aubergine/marigold, Fraunces headings).
+
+### Blockers — need Lewis
+- **Apply `0009_services.sql` by hand** in the CI Supabase SQL editor (`lfyerbxqfwjjftcpjzbv`). The Supabase MCP in this env *still* only sees the unrelated "CFO Production/Staging" projects (checked again — won't touch them, golden rule), so I can't apply it. **Until it's applied the tables + `service-images` bucket don't exist and both the admin CRUD and the public `/servicios` fetch will fail at runtime.**
+- After applying: smoke-test end-to-end — log in → `/admin/services/new` → upload images + set a price → publish → confirm it shows on `/servicios` and its detail page → submit a booking → confirm it appears in `/admin/reservas`.
+
+### Out of scope (noted, not built)
+- Payments/checkout (deliberate — lead capture only).
+- Per-image alt text (single shared alt for now).
+- Booking confirmation email to the visitor (Marie contacts manually); an email-forward of the request to Marie is a trivial future add.
+
+### Follow-up (same session) — Vercel build failed on the not-yet-migrated table
+First push's Vercel preview failed the **whole build** with `PGRST205 Could not find the table 'public.services'`. Root cause is an ordering flaw I should've caught: Vercel auto-deploys on push, but `0009` is a manual apply, so `/servicios/[slug]` `generateStaticParams` + `sitemap` hit the CI Supabase (creds present, unlike the sandbox) against a project with no `services` table yet — and the queries `throw`, which fails page-data collection for the entire site (articles included), not just services.
+- **Fix**: `getPublishedServices`/`getServiceBySlug` now swallow ONLY the "table not migrated yet" codes (PostgREST `PGRST205` / Postgres `42P01`) → return empty/null; every other error still throws loudly (matching the article queries). So the site builds/deploys **before** the migration; `/servicios` renders its empty state and lights up fully once `0009` runs. Verified with a fixture build simulating the empty result (build green, `/servicios` `○` static, `/servicios/[slug]` `●` with 0 prerendered slugs).
+- Admin routes were already safe — they're dynamic (`ƒ`, per-request, not built) and ignore query errors (`const { data } = …`), so a missing table yields empty admin lists / a 0 count on the dashboard, not a crash. The blocker is unchanged: apply `0009` for the feature to actually function.

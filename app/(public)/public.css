@@ -1,8 +1,9 @@
 /* Conciencia Inquieta — public site design system.
    Adapted from the approved CI prototype (see CLAUDE.md "Brand tokens").
    Trimmed to MVP scope: no shop/cart, no accounts/login, no saved articles,
-   no on-site search, no services checkout, no ad slots — see MVP Build plan
-   "Explicitly OUT of MVP". */
+   no on-site search, no ad slots — see MVP Build plan "Explicitly OUT of MVP".
+   Services are a showcase + booking lead-capture form (name/email/phone →
+   Marie contacts) — deliberately NO on-site checkout or payment. */
 
 :root{
   --lienzo:#fff9f1;        /* cream canvas */
@@ -289,6 +290,24 @@ body.nav-open .mobile-close-btn{display:flex;}
 /* related */
 .related{padding:42px 0;border-top:1px solid var(--line);max-width:var(--maxread);margin:0 auto;}
 
+/* ---------- services (showcase + booking lead-capture, no on-site checkout) ---------- */
+.service-card .body{gap:0;}
+.service-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.price-tag{font-family:var(--ui);font-weight:700;font-size:.82rem;color:var(--berenjena);background:var(--ambar-soft);padding:4px 11px;border-radius:999px;}
+.service-cta{font-size:.85rem;font-weight:600;color:var(--berenjena);}
+.service-card:hover .service-cta{color:var(--ambar);}
+
+/* service detail */
+.price-line{display:inline-block;font-family:var(--ui);font-weight:700;font-size:1rem;color:var(--berenjena);background:var(--ambar-soft);padding:7px 15px;border-radius:999px;margin-top:8px;}
+.service-detail{max-width:var(--maxread);margin:0 auto;}
+.service-hero{height:360px;border-radius:18px;margin-bottom:22px;}
+.service-gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;}
+.service-gallery img{width:100%;height:220px;object-fit:cover;border-radius:14px;}
+.service-book{max-width:var(--maxread);margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:36px;}
+.service-book h2{font-family:var(--display);font-weight:600;font-size:clamp(1.5rem,3vw,2rem);line-height:1.08;margin:0 0 10px;}
+.service-book-lead{font-family:var(--read);font-size:1.05rem;color:#4f4658;line-height:1.6;margin:0 0 22px;max-width:38rem;}
+.service-book .form{max-width:none;}
+
 /* responsive */
 @media(max-width:1024px){
   .feature-trio{grid-template-columns:repeat(2,1fr);}
@@ -308,6 +327,10 @@ body.nav-open .mobile-close-btn{display:flex;}
   .share{width:100%;margin:14px 0 0;}
   .byline{flex-wrap:wrap;}
   .masthead{padding:34px 0 4px;}
+  .service-hero{height:240px;}
+  .service-gallery{grid-template-columns:1fr;}
+  .service-gallery img{height:200px;}
+  .service-book{padding:26px 20px;}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important;scroll-behavior:auto;}
