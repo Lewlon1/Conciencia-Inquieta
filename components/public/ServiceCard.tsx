@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FocalImage from "@/components/public/FocalImage";
 import type { Service } from "@/types";
 
 // Server component. Mirrors ArticleCard's structure so it reuses the public
@@ -12,8 +13,13 @@ export default function ServiceCard({ service }: { service: Service }) {
     <Link className="card service-card" href={href}>
       <div className="ph service-ph">
         {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt={service.image_alt || service.title} />
+          <FocalImage
+            src={cover}
+            alt={service.image_alt || service.title}
+            focalX={service.focal_x}
+            focalY={service.focal_y}
+            focalZoom={service.focal_zoom}
+          />
         ) : (
           <span className="glyph">✦</span>
         )}
