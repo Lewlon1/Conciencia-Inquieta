@@ -53,9 +53,12 @@ export default function PrivacidadPage() {
             se usan con ningún otro fin.
           </p>
           <p>
-            <b>Analítica.</b> Usamos una herramienta de analítica sin cookies
-            (Plausible o Umami, según configuración) que no identifica a personas
-            individuales ni requiere consentimiento bajo el RGPD.
+            <b>Analítica.</b> Medimos el uso del sitio con un sistema de analítica
+            propio, sin cookies, alojado en nuestra base de datos (Supabase). No
+            usa cookies, no almacena direcciones IP ni identifica a personas
+            concretas: para contar visitantes únicos generamos un identificador
+            diario, anónimo e irreversible. Por eso no requiere consentimiento
+            bajo el RGPD.
           </p>
           <p>
             <b>Píxel de Meta.</b> Si lo aceptas en el aviso de cookies, activamos
@@ -77,14 +80,12 @@ export default function PrivacidadPage() {
           </p>
           <ul>
             <li>
-              <b>Supabase</b> — base de datos del sitio (contenido editorial,
-              mensajes de contacto y suscripciones al boletín)
+              <b>Supabase</b> — base de datos del sitio: contenido editorial,
+              mensajes de contacto, suscripciones al boletín y la analítica
+              propia sin cookies
             </li>
             <li>
               <b>Vercel</b> — alojamiento (hosting) del sitio
-            </li>
-            <li>
-              <b>Plausible / Umami</b> — analítica sin cookies
             </li>
             <li>
               <b>Meta</b> — Píxel de Meta, solo tras consentimiento

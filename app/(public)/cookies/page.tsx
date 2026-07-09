@@ -34,9 +34,12 @@ export default function CookiesPage() {
           </p>
           <ul>
             <li>
-              <b>Analítica sin cookies.</b> Usamos Plausible o Umami, herramientas
-              de analítica diseñadas para no usar cookies ni identificar a
-              personas concretas — no requieren tu consentimiento.
+              <b>Analítica propia sin cookies.</b> Medimos las visitas con un
+              sistema propio, alojado en nuestra base de datos, que no usa cookies
+              ni almacena tu dirección IP. Para contar visitantes únicos sin
+              identificarte, generamos un identificador temporal que cambia cada
+              día y no permite reconstruir quién eres — no requiere tu
+              consentimiento.
             </li>
             <li>
               <b>Preferencia de cookies.</b> Cuando aceptas o rechazas el aviso de

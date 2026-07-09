@@ -27,6 +27,7 @@ export const t = {
 
   nav: {
     admin: "Admin",
+    analytics: "Analíticas",
     articles: "Artículos",
     bookings: "Reservas",
     contentTools: "Herramientas de contenido",
@@ -106,6 +107,58 @@ export const t = {
     toastError: "Algo salió mal",
     toastSaved: "Artículo guardado correctamente",
     unsavedWarning: "Tienes cambios sin guardar.",
+  },
+
+  analytics: {
+    title: "Analíticas",
+    subtitle: "Cómo la gente encuentra, lee y se suscribe — datos propios, sin cookies.",
+    tabOverview: "Resumen",
+    tabContent: "Contenido",
+    range7: "7 días",
+    range30: "30 días",
+    range90: "90 días",
+    empty:
+      "Aún no hay datos. En cuanto el sitio reciba visitas, aparecerán aquí. (Si acabas de desplegar, aplica la migración 0011 en Supabase.)",
+    // KPIs
+    kpiVisitors: "Visitantes únicos",
+    kpiPageviews: "Páginas vistas",
+    kpiSignups: "Suscripciones",
+    kpiConversion: "Conversión",
+    noBaseline: "sin base de comparación",
+    vsPreviousShort: "vs. anterior",
+    // Funnel
+    funnelTitle: "Embudo de conversión",
+    funnelVisitors: "Visitantes",
+    funnelReaders: "Leyeron un artículo",
+    funnelCta: "Clic en «Únete»",
+    funnelSignups: "Se suscribieron",
+    ofVisitors: "de visitantes",
+    // Sources
+    sourcesTitle: "Suscripciones por canal",
+    sourcesEmpty: "Aún sin suscripciones en este periodo.",
+    // Trend
+    trendTitle: "Visitantes y suscripciones por día",
+    legendVisitors: "Visitantes",
+    legendSignups: "Suscripciones",
+    // Content tab
+    topArticlesTitle: "Artículos más leídos",
+    articlesTitle: "Rendimiento por artículo",
+    colArticle: "Artículo",
+    colReads: "Lecturas",
+    colReaders: "Lectores",
+    colScroll: "Leído al 75%",
+    colSignups: "Suscrip.",
+    articlesEmpty: "Aún no hay lecturas registradas en este periodo.",
+    // MailerLite reconciliation
+    mailerliteTitle: "Suscriptores confirmados (MailerLite)",
+    mlUnset:
+      "Añade MAILERLITE_API_KEY y MAILERLITE_GROUP_ID para comparar las suscripciones del sitio con las confirmadas por doble opt-in.",
+    mlNote:
+      "Totales actuales de la lista en MailerLite (no del periodo seleccionado). La diferencia con «Sin confirmar» es la fuga del doble opt-in.",
+    mlConfirmed: "Confirmados",
+    mlUnconfirmed: "Sin confirmar",
+    mlConfirmRate: "Tasa de confirmación",
+    mlPeriodSignups: "Suscripciones en el sitio (periodo)",
   },
 
   messages: {
