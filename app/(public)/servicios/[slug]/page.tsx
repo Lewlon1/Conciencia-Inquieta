@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import FocalImage from "@/components/public/FocalImage";
 import ServiceBookingForm from "@/components/public/ServiceBookingForm";
 import { getPublishedServices, getServiceBySlug } from "@/lib/content";
 import { pageMetadata, SITE_URL, SITE_NAME } from "@/lib/seo";
@@ -78,8 +79,13 @@ export default async function ServicePage({
         <div className="service-detail">
           {cover && (
             <div className="ph service-hero">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={cover} alt={service.image_alt || service.title} />
+              <FocalImage
+                src={cover}
+                alt={service.image_alt || service.title}
+                focalX={service.focal_x}
+                focalY={service.focal_y}
+                focalZoom={service.focal_zoom}
+              />
             </div>
           )}
 

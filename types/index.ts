@@ -25,6 +25,9 @@ export interface Article {
   author_id: string | null;
   featured_image_url: string | null;
   featured_image_alt: string | null;
+  focal_x: number | null;
+  focal_y: number | null;
+  focal_zoom: number | null;
   is_published: boolean;
   published_at: string | null;
   reading_time_min: number | null;
@@ -61,6 +64,10 @@ export interface Service {
   /** Gallery of image URLs; the first entry is the cover. */
   image_urls: string[];
   image_alt: string | null;
+  /** Focal point/zoom for image_urls[0] (the cover). Resets when a different image is promoted to cover. */
+  focal_x: number | null;
+  focal_y: number | null;
+  focal_zoom: number | null;
   is_published: boolean;
   sort_order: number;
   created_at: string;

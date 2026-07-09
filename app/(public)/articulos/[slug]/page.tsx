@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ArticleCard from "@/components/public/ArticleCard";
+import FocalImage from "@/components/public/FocalImage";
 import SubscribeForm from "@/components/public/SubscribeForm";
 import ArticleTracker from "@/components/public/ArticleTracker";
 import {
@@ -157,10 +158,12 @@ export default async function ArticlePage({
             style={{ background: gradFor(catName) }}
           >
             {article.featured_image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <FocalImage
                 src={article.featured_image_url}
                 alt={article.featured_image_alt || ""}
+                focalX={article.focal_x}
+                focalY={article.focal_y}
+                focalZoom={article.focal_zoom}
               />
             ) : (
               <span className="glyph">{glyphFor(catName)}</span>

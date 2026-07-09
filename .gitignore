@@ -40,6 +40,9 @@ next-env.d.ts
 # claude code — personal/local settings, not shared
 .claude/settings.local.json
 
+# superpowers brainstorming companion — local scratch mockups, not shared
+.superpowers/
+
 # design-tool export bundle (1.5MB self-extracting HTML, already implemented
 # into real components under app/(public) and components/public — see
 # lessons.md). Kept out of git history so it doesn't bloat the repo forever.
