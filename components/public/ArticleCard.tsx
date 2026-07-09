@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { gradFor, glyphFor, catClassFor } from "@/lib/categoryStyle";
+import FocalImage from "@/components/public/FocalImage";
 import type { ArticleWithRelations } from "@/types";
 
 interface Props {
@@ -15,8 +16,13 @@ export default function ArticleCard({ article, variant = "card", style }: Props)
   const authorName = article.author?.name ?? "Redacción";
 
   const placeholder = article.featured_image_url ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={article.featured_image_url} alt={article.featured_image_alt || ""} />
+    <FocalImage
+      src={article.featured_image_url}
+      alt={article.featured_image_alt || ""}
+      focalX={article.focal_x}
+      focalY={article.focal_y}
+      focalZoom={article.focal_zoom}
+    />
   ) : (
     <span className="glyph">{glyphFor(catName)}</span>
   );
