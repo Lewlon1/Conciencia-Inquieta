@@ -288,3 +288,26 @@ Non-code session: tidy old branches + prepare the handover to Marie.
 
 ### Next step
 - Unchanged from the two sessions above: the pending migrations + env vars + Supabase MCP reconnection remain the real blockers to a fully-working launch (now consolidated in `docs/handover-marie.md` §5).
+
+---
+
+## Session 8 — 2026-07-09 — Collect emails directly (MailerLite deferred)
+
+Marie hasn't used MailerLite, so signups now land in Supabase and she views/exports them from `/admin/suscriptores`; MailerLite is kept dormant.
+
+### What changed
+- **Migration `0011_subscribers.sql`** (NOT applied — manual, same blocker): `subscribers` (`email` UNIQUE, `source`, `created_at`). RLS mirrors `service_bookings` — public INSERT, admin full, `REVOKE SELECT … FROM anon` (email list is PII). No build-time public read of the table, so `next build` is green before it's applied (unlike the services rollout).
+- **`config/flags.ts`**: added `mailerliteSync: false`. **`app/api/suscribir/route.ts`**: active path now inserts into `subscribers` (email lowercased → natural dedup; `23505` treated as success); MailerLite `fetch` kept as an inert helper that only runs when the flag is on + `MAILERLITE_*` set (best-effort, never fails the signup).
+- **Admin**: `/admin/suscriptores` (`SubscribersTable`) lists email · source · date with an **Exportar CSV** button (`lib/csv.ts`, RFC-4180 escaping); nav link + dashboard "Suscriptores" count added.
+- **Copy**: signup success + `/unete` note no longer promise a confirmation email; **`privacidad`** rewritten (email stored directly, no external processor/opt-in email yet, baja via Contacto), MailerLite removed from the processors list.
+
+### Decisions
+- **[Likely]** Single opt-in is lawful consent under RGPD given clear notice; double opt-in is **deferred** to the eventual MailerLite import (import the CSV → MailerLite sends its confirmation then), not lost.
+- **[Certain]** No `is_active`/self-serve unsubscribe (Marie deletes a row); no dual-write now.
+
+### Blockers — need Lewis
+- Apply `0011_subscribers.sql` by hand (`lfyerbxqfwjjftcpjzbv`) — until then the admin list is empty and signups fail at runtime (build is unaffected).
+- Manual smoke test: submit on `/unete` → "¡Ya estás en la lista!" → row in `/admin/suscriptores` (correct source) → Exportar CSV opens correctly → resubmit same email stays `ok=1` with no duplicate.
+
+### Next step
+- Re-enable path when Marie's ready: import the CSV into MailerLite, set `mailerliteSync: true` + `MAILERLITE_*`, restore the MailerLite line in `privacidad`.
