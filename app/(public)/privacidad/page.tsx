@@ -41,10 +41,10 @@ export default function PrivacidadPage() {
           <p>
             <b>Boletín por email.</b> Si te suscribes en{" "}
             <Link href="/unete">Únete</Link> o en cualquier formulario del sitio,
-            tu email se envía a MailerLite (proveedor de email marketing) para
-            gestionar el envío del boletín, con doble confirmación (double
-            opt-in): no recibirás nada hasta que confirmes desde tu propia bandeja
-            de entrada.
+            guardamos tu email en nuestra base de datos (Supabase) para enviarte
+            el boletín. Por ahora no usamos ningún proveedor externo de email
+            marketing y no se envía un correo de confirmación automático. Puedes
+            pedir la baja cuando quieras (ver «Tus derechos»).
           </p>
           <p>
             <b>Formulario de contacto.</b> Si escribes desde{" "}
@@ -77,11 +77,8 @@ export default function PrivacidadPage() {
           </p>
           <ul>
             <li>
-              <b>MailerLite</b> — gestión del boletín de email
-            </li>
-            <li>
-              <b>Supabase</b> — base de datos del sitio (contenido editorial y
-              mensajes de contacto)
+              <b>Supabase</b> — base de datos del sitio (contenido editorial,
+              mensajes de contacto y suscripciones al boletín)
             </li>
             <li>
               <b>Vercel</b> — alojamiento (hosting) del sitio
@@ -111,8 +108,8 @@ export default function PrivacidadPage() {
             Puedes ejercer tus derechos de acceso, rectificación, supresión,
             oposición, limitación y portabilidad escribiendo a{" "}
             <b>TODO: email de contacto para privacidad</b>. También puedes darte
-            de baja del boletín en cualquier momento desde el enlace incluido en
-            cada email.
+            de baja del boletín en cualquier momento escribiéndonos desde{" "}
+            <Link href="/contacto">Contacto</Link>.
           </p>
 
           <h2>7. Contacto</h2>
