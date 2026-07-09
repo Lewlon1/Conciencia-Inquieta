@@ -12,6 +12,8 @@ import Funnel from "@/components/admin/analytics/Funnel";
 import BarList from "@/components/admin/analytics/BarList";
 import TrendChart from "@/components/admin/analytics/TrendChart";
 import ArticleTable from "@/components/admin/analytics/ArticleTable";
+import MailerliteCard from "@/components/admin/analytics/MailerliteCard";
+import { getMailerliteStats } from "@/lib/analytics/mailerlite";
 import { CHART } from "@/components/admin/analytics/palette";
 
 // Dynamic (per-request, auth-gated by middleware). Reads first-party analytics
@@ -37,7 +39,11 @@ export default async function AnalyticsPage({
 }) {
   const range = normalizeRange(searchParams.range);
   const tab: Tab = searchParams.tab === "contenido" ? "contenido" : "resumen";
-  const summary = await getAnalyticsSummary(range);
+  // MailerLite pull only feeds the Resumen tab — skip it on Contenido.
+  const [summary, mlStats] = await Promise.all([
+    getAnalyticsSummary(range),
+    tab === "resumen" ? getMailerliteStats() : Promise.resolve(null),
+  ]);
   const empty = summaryIsEmpty(summary);
 
   const sourceItems = summary.by_source.map((s) => ({ label: s.source, value: s.signups }));
@@ -69,10 +75,7 @@ export default async function AnalyticsPage({
             </Card>
           </div>
           <TrendChart points={trend} />
-          <div className="bg-white border border-dashed border-[#e0dcd4] rounded-xl p-5">
-            <p className="text-sm font-medium text-[#6b6560]">{t.analytics.mailerliteTitle}</p>
-            <p className="text-xs text-[#b8b0a4] mt-1">{t.analytics.mailerlitePending}</p>
-          </div>
+          <MailerliteCard stats={mlStats} periodSignups={summary.kpis.signups} />
         </div>
       ) : (
         <div className="space-y-6">

@@ -147,10 +147,16 @@ export const t = {
     colScroll: "Leído al 75%",
     colSignups: "Suscrip.",
     articlesEmpty: "Aún no hay lecturas registradas en este periodo.",
-    // MailerLite reconciliation (Phase 2 placeholder)
+    // MailerLite reconciliation
     mailerliteTitle: "Suscriptores confirmados (MailerLite)",
-    mailerlitePending:
-      "Se conecta en la fase 2 — comparará las suscripciones del sitio con las confirmadas por doble opt-in.",
+    mlUnset:
+      "Añade MAILERLITE_API_KEY y MAILERLITE_GROUP_ID para comparar las suscripciones del sitio con las confirmadas por doble opt-in.",
+    mlNote:
+      "Totales actuales de la lista en MailerLite (no del periodo seleccionado). La diferencia con «Sin confirmar» es la fuga del doble opt-in.",
+    mlConfirmed: "Confirmados",
+    mlUnconfirmed: "Sin confirmar",
+    mlConfirmRate: "Tasa de confirmación",
+    mlPeriodSignups: "Suscripciones en el sitio (periodo)",
   },
 
   messages: {

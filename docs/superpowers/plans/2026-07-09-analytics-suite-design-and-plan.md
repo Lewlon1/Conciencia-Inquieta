@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-09
 **Branch:** `claude/analytics-suite-dashboard-ksqqrq`
-**Status:** Phases 0 + 1 built (see `lessons.md` Session 8). Migration `0011` awaits manual apply; Phase 2 (MailerLite reconciliation, rollup) deferred.
+**Status:** Phases 0 + 1 built, plus Phase 2 MailerLite reconciliation, `/api/track` hardening, legal copy, and retention pruning (`0012`) — see `lessons.md` Session 8. Migrations `0011`+`0012` await manual apply. Only the `analytics_daily` aggregation rollup is deliberately deferred (premature at launch traffic).
 
 ---
 

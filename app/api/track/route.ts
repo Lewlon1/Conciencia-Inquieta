@@ -35,6 +35,16 @@ export async function POST(request: NextRequest) {
     const name = String(body?.name || "").trim();
     if (!isKnownEvent(name)) return noContent();
 
+    // Same-origin guard: drop beacons whose Origin is a different site (trivial
+    // cross-site count-stuffing). A MISSING Origin is allowed — some same-origin
+    // requests omit it and we won't drop legitimate events. This is the only
+    // stateless abuse mitigation available; real rate-limiting needs shared
+    // state (KV/Redis), which an in-memory counter can't provide on serverless —
+    // left as infra-gated follow-up rather than shipped as theatre.
+    const reqHost = request.nextUrl.hostname.replace(/^www\./, "");
+    const originHost = hostOf(request.headers.get("origin"));
+    if (originHost && originHost !== reqHost) return noContent();
+
     // Anonymous daily visitor id. Client IP + UA are used ONLY to compute the
     // salted hash here and are never stored. No salt (or no IP) → no visitor id
     // rather than a guessable one; the event is still recorded.
@@ -47,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const utm = (body?.utm ?? {}) as { source?: string; medium?: string; campaign?: string };
     const referrerHost = hostOf(body?.referrer as string | undefined);
-    const selfHost = hostOf(request.headers.get("origin")) || request.nextUrl.hostname;
+    const selfHost = originHost || reqHost;
 
     const supabase = getPublicSupabase();
     await supabase.from("analytics_events").insert({
