@@ -23,7 +23,7 @@ export interface FrameSpec {
 // real fixed max-width (--maxread: 40rem = 640px, for the two hero-shaped
 // frames) or an illustrative stand-in for the fluid-width grid frames
 // (their real width varies by breakpoint/column count regardless).
-export const ARTICLE_HERO_FRAME: FrameSpec = { label: "Hero", width: 640, height: 380 };
+export const ARTICLE_HERO_FRAME: FrameSpec = { label: "Cabecera", width: 640, height: 380 };
 export const ARTICLE_CARD_FRAME: FrameSpec = { label: "Tarjeta", width: 300, height: 172 };
 export const ARTICLE_FEATURE_FRAME: FrameSpec = { label: "Destacado", width: 300, height: 210 };
 export const SERVICE_CARD_FRAME: FrameSpec = { label: "Tarjeta", width: 300, height: 172 };

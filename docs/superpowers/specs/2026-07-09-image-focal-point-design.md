@@ -72,7 +72,7 @@ No query changes needed — `lib/content.ts` already uses `select("*"...)` for b
 - **No image yet** — focal editor doesn't render; matches `ImageUploader`'s existing empty state.
 - **Replacing the image** ("Reemplazar") — focal values reset to defaults. A new photo has no relationship to the old crop.
 - **Promoting a different cover image** (services) — same reset, see Data model above.
-- **Removing the image** ("Quitar") — focal values are left as stored (harmless; nothing renders without a URL).
+- **Removing the image** ("Quitar") — focal values reset to defaults too, same as replacing. Since `ImageUploader`'s `onChange` fires identically for both actions (a new URL or `""`), and `ServiceImagesUploader.removeAt` resets whenever the cover is removed, there's no cheap way to distinguish "removed" from "replaced" — and it's harmless either way, since nothing renders without a URL.
 - **Animated GIFs** — unaffected. Focal positioning is a render-time CSS concern, independent of the existing upload/compression pipeline (`uploadImage.ts` already special-cases GIFs to skip Canvas re-encoding; that's orthogonal to this feature).
 - **Zoom bounds** — clamped to [1.0, 3.0] in both the drag interaction and, defensively, in `focalImage.ts` itself, so a hand-edited/corrupt DB value can't produce a broken (e.g. negative or absurdly large) transform.
 
