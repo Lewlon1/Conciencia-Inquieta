@@ -86,3 +86,11 @@ export interface ServiceBooking {
   is_read: boolean;
   created_at: string;
 }
+
+/** A newsletter signup captured from the public site. Stored directly (MailerLite deferred). */
+export interface Subscriber {
+  id: string;
+  email: string;
+  source: string | null;
+  created_at: string;
+}
