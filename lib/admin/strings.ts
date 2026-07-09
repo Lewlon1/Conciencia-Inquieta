@@ -34,6 +34,7 @@ export const t = {
     dashboard: "Panel",
     messages: "Mensajes",
     services: "Servicios",
+    subscribers: "Suscriptores",
     toggleNavigation: "Alternar navegación",
   },
 
@@ -46,6 +47,7 @@ export const t = {
     quickActions: "Acciones rápidas",
     recentArticles: "Artículos recientes",
     services: "Servicios",
+    subscribers: "Suscriptores",
     subtitle: "Administración de la revista digital — artículos, categorías y autoras",
     totalArticles: "Artículos totales",
     writeArticle: "Escribir un artículo",
@@ -163,6 +165,14 @@ export const t = {
     empty: "Aún no hay mensajes.",
     subtitle: "Mensajes del formulario de contacto del sitio público",
     title: "Mensajes",
+  },
+
+  subscribers: {
+    count: "suscriptores",
+    empty: "Aún no hay suscriptores.",
+    exportCsv: "Exportar CSV",
+    subtitle: "Personas suscritas al boletín desde el sitio público",
+    title: "Suscriptores",
   },
 
   services: {

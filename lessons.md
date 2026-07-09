@@ -314,3 +314,48 @@ Lewis asked to "finish these tasks." Did everything that's code (the operational
 - **`/api/track` hardening**: added a **same-origin guard** (drop beacons whose `Origin` is a different site; missing Origin allowed so legit events aren't dropped). Deliberately did NOT ship an in-memory rate-limiter — it's useless on serverless (per-instance state); real rate-limiting needs a KV store (infra-gated, noted).
 - **Retention** (`0012_analytics_prune.sql`): `prune_analytics_events(retention_days=180)` SECURITY DEFINER (pinned search_path), EXECUTE for `authenticated` only, + a documented (commented) pg_cron daily schedule. **Skipped the `analytics_daily` aggregation rollup on purpose** — premature at launch traffic; documented why in the migration header.
 - Verified: `tsc --noEmit` clean; fixture-screenshot of the populated MailerLite card (temp guards reverted). Migrations `0011`+`0012` both still await manual apply.
+
+---
+
+## Housekeeping — 2026-07-09 — Branch cleanup + Marie handover doc
+
+Non-code session: tidy old branches + prepare the handover to Marie.
+
+### Branch cleanup (verified before deleting, per Lewis's ask)
+- **All remote branches were fully merged** into `origin/main` (0 commits ahead each): the 5 `claude/*` Claude Code session branches + `pr/image-focal-point` + `pr/local-design-canonical`. Deleted all 7 from the remote.
+- **Local merged branches deleted**: `claude/question-ticker-banner`, `pr/image-focal-point`, `pr/local-design-canonical`, `worktree-image-focal-point`.
+- **Stale worktree removed**: `.claude/worktrees/image-focal-point` (branch `worktree-image-focal-point`, at merged commit 95e2535 — the focal-point work is already in main via PR #3). Empty `.claude/worktrees/` dir cleaned up too.
+- **`feat/burger-nav-centered-logo` force-deleted** (`-D`). It was a *separate-root* parallel copy of the whole app ("no merge base" with main), from 2026-07-08. Verified superseded: its nav redesign (`Topbar.tsx` + `NavOverlay.tsx`) is **byte-identical to main**, and its transparent logo (`public/conciencia-logo.png`) is already on main. Its only unique delta was the *absence* of the Services feature — which main intentionally has. Nothing of value lost.
+- **End state**: only `main` locally and `origin/main` remotely; one worktree (the main checkout).
+
+### Handover doc
+- Wrote `docs/handover-marie.md` — Marie-facing: what the site is, the full feature list (public + admin + integrations), a 15-min guided admin tour, deliberate scope boundaries, the "before launch" checklist (the 3 pending migrations + MailerLite/analytics env vars + smoke tests, all carried over from the sessions above), and roadmap ideas. Written in **English** (matched Lewis's request); flagged that a Spanish version likely serves Marie better if it goes to her directly — offered, not yet done.
+
+### Note / no change
+- Confirmed `/servicios` on main is the deliberately-built public Services feature (page + `ServiceCard` + admin CRUD from the merged `services-tab-admin-portal` branch), **not** the flagged-off `servicePriceManagement` tool (still `false`, unported). No golden-rule issue.
+
+### Next step
+- Unchanged from the two sessions above: the pending migrations + env vars + Supabase MCP reconnection remain the real blockers to a fully-working launch (now consolidated in `docs/handover-marie.md` §5).
+
+---
+
+## Session 8 — 2026-07-09 — Collect emails directly (MailerLite deferred)
+
+Marie hasn't used MailerLite, so signups now land in Supabase and she views/exports them from `/admin/suscriptores`; MailerLite is kept dormant.
+
+### What changed
+- **Migration `0011_subscribers.sql`** (NOT applied — manual, same blocker): `subscribers` (`email` UNIQUE, `source`, `created_at`). RLS mirrors `service_bookings` — public INSERT, admin full, `REVOKE SELECT … FROM anon` (email list is PII). No build-time public read of the table, so `next build` is green before it's applied (unlike the services rollout).
+- **`config/flags.ts`**: added `mailerliteSync: false`. **`app/api/suscribir/route.ts`**: active path now inserts into `subscribers` (email lowercased → natural dedup; `23505` treated as success); MailerLite `fetch` kept as an inert helper that only runs when the flag is on + `MAILERLITE_*` set (best-effort, never fails the signup).
+- **Admin**: `/admin/suscriptores` (`SubscribersTable`) lists email · source · date with an **Exportar CSV** button (`lib/csv.ts`, RFC-4180 escaping); nav link + dashboard "Suscriptores" count added.
+- **Copy**: signup success + `/unete` note no longer promise a confirmation email; **`privacidad`** rewritten (email stored directly, no external processor/opt-in email yet, baja via Contacto), MailerLite removed from the processors list.
+
+### Decisions
+- **[Likely]** Single opt-in is lawful consent under RGPD given clear notice; double opt-in is **deferred** to the eventual MailerLite import (import the CSV → MailerLite sends its confirmation then), not lost.
+- **[Certain]** No `is_active`/self-serve unsubscribe (Marie deletes a row); no dual-write now.
+
+### Blockers — need Lewis
+- Apply `0011_subscribers.sql` by hand (`lfyerbxqfwjjftcpjzbv`) — until then the admin list is empty and signups fail at runtime (build is unaffected).
+- Manual smoke test: submit on `/unete` → "¡Ya estás en la lista!" → row in `/admin/suscriptores` (correct source) → Exportar CSV opens correctly → resubmit same email stays `ok=1` with no duplicate.
+
+### Next step
+- Re-enable path when Marie's ready: import the CSV into MailerLite, set `mailerliteSync: true` + `MAILERLITE_*`, restore the MailerLite line in `privacidad`.

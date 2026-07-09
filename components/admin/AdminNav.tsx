@@ -16,6 +16,7 @@ const navLinks = [
   { label: t.nav.services, href: "/admin/services" },
   { label: t.nav.bookings, href: "/admin/reservas" },
   { label: t.nav.messages, href: "/admin/messages" },
+  { label: t.nav.subscribers, href: "/admin/suscriptores" },
   // Reserved, not built yet — see config/flags.ts and CLAUDE.md golden rules.
   ...(FLAGS.contentGenerationTools
     ? [{ label: t.nav.contentTools, href: "/admin/content-tools" }]

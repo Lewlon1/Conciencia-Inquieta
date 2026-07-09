@@ -11,6 +11,13 @@ export const FLAGS = {
 
   /** AI content-generation tools: repurpose, inspiration, transits, video-editor, photoshop (not ported yet). */
   contentGenerationTools: false,
+
+  /**
+   * Forward new newsletter signups to MailerLite in addition to storing them in
+   * Supabase. OFF for now — Marie collects addresses directly and exports them
+   * from /admin/suscriptores. Flip to true + set MAILERLITE_* env to re-enable.
+   */
+  mailerliteSync: false,
 } as const;
 
 export type FlagKey = keyof typeof FLAGS;
