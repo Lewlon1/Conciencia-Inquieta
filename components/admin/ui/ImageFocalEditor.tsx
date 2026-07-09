@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   computeFocalStyle,
   DEFAULT_FOCAL,
@@ -27,6 +27,16 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function sanitizePercent(value: number | null | undefined, fallback: number): number {
+  if (value == null || Number.isNaN(value)) return fallback;
+  return clamp(value, 0, 100);
+}
+
+function sanitizeZoom(value: number | null | undefined): number {
+  if (value == null || Number.isNaN(value)) return DEFAULT_FOCAL.focalZoom;
+  return clamp(value, MIN_ZOOM, MAX_ZOOM);
+}
+
 export default function ImageFocalEditor({
   imageUrl,
   alt,
@@ -37,12 +47,13 @@ export default function ImageFocalEditor({
   referenceFrame,
   mirrorFrames,
 }: ImageFocalEditorProps) {
-  const x = focalX ?? DEFAULT_FOCAL.focalX;
-  const y = focalY ?? DEFAULT_FOCAL.focalY;
-  const zoom = focalZoom ?? DEFAULT_FOCAL.focalZoom;
+  const x = sanitizePercent(focalX, DEFAULT_FOCAL.focalX);
+  const y = sanitizePercent(focalY, DEFAULT_FOCAL.focalY);
+  const zoom = sanitizeZoom(focalZoom);
 
   const imgRef = useRef<HTMLImageElement>(null);
   const [displayHeight, setDisplayHeight] = useState<number | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // Hooks must run unconditionally on every render. displayHeight starts
   // null and the component returns early (below) until the image loads, so
@@ -61,10 +72,38 @@ export default function ImageFocalEditor({
     startHeight: number;
   } | null>(null);
 
+  // handlePointerMove/handlePointerUp below are plain function declarations
+  // re-created on every render, so the *specific* closures attached to
+  // `window` by startDrag() are whichever render was current when the drag
+  // began — not necessarily this render's. This ref always points at
+  // whichever pair is actually attached, so the unmount-cleanup effect
+  // (which only ever runs once, at mount) can remove the right listeners
+  // instead of a stale mount-time closure that was never attached.
+  const activeDragListenersRef = useRef<{
+    move: (e: PointerEvent) => void;
+    up: () => void;
+  } | null>(null);
+
   const handleImageLoad = useCallback(() => {
     const img = imgRef.current;
     if (!img || !img.naturalWidth || !img.naturalHeight) return;
     setDisplayHeight((DISPLAY_WIDTH * img.naturalHeight) / img.naturalWidth);
+  }, []);
+
+  const handleImageError = useCallback(() => {
+    setLoadFailed(true);
+  }, []);
+
+  // Tear down any in-progress drag's window listeners if this component
+  // unmounts mid-gesture, so a stale closure doesn't linger on `window`
+  // until some unrelated pointerup fires elsewhere on the page.
+  useEffect(() => {
+    return () => {
+      const active = activeDragListenersRef.current;
+      if (!active) return;
+      window.removeEventListener("pointermove", active.move);
+      window.removeEventListener("pointerup", active.up);
+    };
   }, []);
 
   const refAspect = referenceFrame.width / referenceFrame.height;
@@ -91,9 +130,10 @@ export default function ImageFocalEditor({
           src={imageUrl}
           alt={alt}
           onLoad={handleImageLoad}
+          onError={handleImageError}
           style={{ display: "none" }}
         />
-        Cargando imagen…
+        {loadFailed ? "No se pudo cargar la imagen." : "Cargando imagen…"}
       </div>
     );
   }
@@ -159,6 +199,7 @@ export default function ImageFocalEditor({
 
   function handlePointerUp() {
     dragRef.current = null;
+    activeDragListenersRef.current = null;
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
   }
@@ -175,6 +216,7 @@ export default function ImageFocalEditor({
       startWidth: rectWidth,
       startHeight: rectHeight,
     };
+    activeDragListenersRef.current = { move: handlePointerMove, up: handlePointerUp };
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
   }
