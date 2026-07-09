@@ -32,10 +32,9 @@ export default function UnetePage() {
         <div className="note" style={{ marginTop: 10 }}>
           <span>ℹ️</span>
           <div>
-            <b>Doble confirmación:</b> tras dejar tu email recibirás un mensaje
-            para confirmar. Así nos aseguramos de que de verdad quieres estar
-            aquí — y de que tu bandeja de entrada no se llena de nada que no hayas
-            pedido.
+            <b>Sin spam:</b> dejando tu email te sumas a la lista de Conciencia
+            Inquieta. Un correo a la semana como mucho, y puedes darte de baja
+            cuando quieras escribiéndonos.
           </div>
         </div>
         <div style={{ marginTop: 28 }}>
