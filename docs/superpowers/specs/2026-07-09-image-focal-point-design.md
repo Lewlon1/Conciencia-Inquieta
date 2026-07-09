@@ -12,7 +12,7 @@ The featured/cover image on articles and services renders in several fixed-heigh
 | Article | Grid card (`.card .ph`) | 172px |
 | Article | Detail hero (`.hero-img`) | 380px |
 | Service | Grid card (`.card .ph.service-ph`) | 172px |
-| Service | Detail gallery tile (`.service-gallery img`) | 220px |
+| Service | Detail hero (`.service-hero`) | 360px |
 
 Marie has no control over which part of an uploaded image survives the crop, and no way to see the crop before publishing. An off-center subject (e.g. a face not in the middle third) gets cut off in one or more frames with no warning.
 
@@ -47,7 +47,7 @@ ALTER TABLE services
 ## New shared code
 
 - **`lib/focalImage.ts`** — one pure function: `(focal_x, focal_y, focal_zoom) → { objectPosition, transform, transformOrigin }`. The single source of truth for the CSS math; both the admin editor and the public renderer call it, so there's no risk of the two drifting apart.
-- **`components/public/FocalImage.tsx`** — thin wrapper around `<img>` using that helper. Replaces the raw `<img>` currently in `ArticleCard.tsx`, the article hero (`app/(public)/articulos/[slug]/page.tsx`), `ServiceCard.tsx`, and the service gallery. Props: `src, alt, focalX, focalY, focalZoom, className`.
+- **`components/public/FocalImage.tsx`** — thin wrapper around `<img>` using that helper. Replaces the raw `<img>` currently in `ArticleCard.tsx`, the article hero (`app/(public)/articulos/[slug]/page.tsx`), `ServiceCard.tsx`, and the service detail hero (`app/(public)/servicios/[slug]/page.tsx` — the `.service-hero` block only; the `.service-gallery` grid renders the *non-cover* images and is untouched). Props: `src, alt, focalX, focalY, focalZoom, className`.
 - **`components/admin/ui/ImageFocalEditor.tsx`** — the editor UI (below). Props: `imageUrl`, current `focalX/focalY/focalZoom`, `onChange`, and `frames: {label: string, width: number, height: number}[]` describing which preview tiles to render.
 
 ## Editor UI
@@ -55,7 +55,7 @@ ALTER TABLE services
 One reference frame is directly editable; the rest are live read-only mirrors driven by the same values:
 
 - **Articles** — reference frame is the **Hero** (380px, biggest and most detail-sensitive); Tarjeta and Destacado render as smaller mirrors alongside it.
-- **Services** — reference frame is the **Card** (172px, services have no hero-equivalent); the Gallery tile renders as the mirror.
+- **Services** — reference frame is the **Card** (172px); the Detail hero (360px) renders as the mirror.
 
 Interaction on the reference frame: a resizable, draggable rectangle overlaid on the full (unzoomed) image — drag the body to pan (updates `focal_x/y` from the rectangle's center), drag a corner handle to resize (updates `focal_zoom`; smaller rectangle = more zoomed in). The rectangle's aspect ratio is locked to the reference frame's aspect ratio while resizing, so it can't distort. Resize is bounded so the rectangle can never exceed the source image (min zoom 1.0, matching today's default crop) or shrink past a minimum size (max zoom 3.0). A "Restablecer" link resets to center/no-zoom.
 
