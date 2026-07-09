@@ -5,12 +5,22 @@ import {
   uploadArticleImage,
   validateImageFile,
 } from "@/lib/admin/uploadImage";
+import ImageFocalEditor from "@/components/admin/ui/ImageFocalEditor";
+import {
+  ARTICLE_CARD_FRAME,
+  ARTICLE_FEATURE_FRAME,
+  ARTICLE_HERO_FRAME,
+} from "@/lib/focalImage";
 
 interface ImageUploaderProps {
   value: string; // current featured_image_url ("" if none)
   alt: string; // current featured_image_alt
   onChange: (url: string) => void;
   onAltChange: (alt: string) => void;
+  focalX: number | null;
+  focalY: number | null;
+  focalZoom: number | null;
+  onFocalChange: (focal: { focalX: number; focalY: number; focalZoom: number }) => void;
   label?: string; // defaults to "Imagen destacada"
   altLabel?: string; // defaults to "Texto alternativo de la imagen"
 }
@@ -36,6 +46,10 @@ export default function ImageUploader({
   alt,
   onChange,
   onAltChange,
+  focalX,
+  focalY,
+  focalZoom,
+  onFocalChange,
   label = "Imagen destacada",
   altLabel = "Texto alternativo de la imagen",
 }: ImageUploaderProps) {
@@ -166,11 +180,16 @@ export default function ImageUploader({
           tabIndex={0}
           className="rounded-xl border border-[#e8e5df] bg-[#fafaf8] p-3 focus:outline-none focus:ring-2 focus:ring-deep/20"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={value}
+          <ImageFocalEditor
+            key={value}
+            imageUrl={value}
             alt={alt}
-            className="max-h-[180px] w-auto rounded-lg object-contain"
+            focalX={focalX}
+            focalY={focalY}
+            focalZoom={focalZoom}
+            onChange={onFocalChange}
+            referenceFrame={ARTICLE_HERO_FRAME}
+            mirrorFrames={[ARTICLE_CARD_FRAME, ARTICLE_FEATURE_FRAME]}
           />
           <div className="flex flex-wrap gap-2 mt-3">
             <button

@@ -3,12 +3,18 @@
 import { useRef, useState } from "react";
 import { uploadServiceImage, validateImageFile } from "@/lib/admin/uploadImage";
 import { t } from "@/lib/admin/strings";
+import ImageFocalEditor from "@/components/admin/ui/ImageFocalEditor";
+import { DEFAULT_FOCAL, SERVICE_CARD_FRAME, SERVICE_HERO_FRAME } from "@/lib/focalImage";
 
 interface ServiceImagesUploaderProps {
   value: string[]; // ordered image URLs; first is the cover
   alt: string;
   onChange: (urls: string[]) => void;
   onAltChange: (alt: string) => void;
+  focalX: number | null;
+  focalY: number | null;
+  focalZoom: number | null;
+  onFocalChange: (focal: { focalX: number; focalY: number; focalZoom: number }) => void;
 }
 
 const INPUT_CLASS =
@@ -24,6 +30,10 @@ export default function ServiceImagesUploader({
   alt,
   onChange,
   onAltChange,
+  focalX,
+  focalY,
+  focalZoom,
+  onFocalChange,
 }: ServiceImagesUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +58,13 @@ export default function ServiceImagesUploader({
           setError(validationError);
           continue;
         }
+        const hadNoCoverBefore = next.length === 0;
         const { url } = await uploadServiceImage(file);
         next = [...next, url];
         onChange(next);
+        if (hadNoCoverBefore) {
+          onFocalChange({ ...DEFAULT_FOCAL });
+        }
       }
     } catch {
       setError(t.serviceEditor.uploadError);
@@ -111,7 +125,9 @@ export default function ServiceImagesUploader({
 
   const removeAt = (index: number) => {
     setError(null);
+    const wasCover = index === 0;
     onChange(value.filter((_, i) => i !== index));
+    if (wasCover) onFocalChange({ ...DEFAULT_FOCAL });
   };
 
   const makeCover = (index: number) => {
@@ -120,6 +136,7 @@ export default function ServiceImagesUploader({
     const [picked] = reordered.splice(index, 1);
     reordered.unshift(picked);
     onChange(reordered);
+    onFocalChange({ ...DEFAULT_FOCAL });
   };
 
   return (
@@ -144,12 +161,26 @@ export default function ServiceImagesUploader({
                   {t.serviceEditor.coverBadge}
                 </span>
               )}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt=""
-                className="h-28 w-full rounded-lg object-cover"
-              />
+              {index === 0 ? (
+                <ImageFocalEditor
+                  key={url}
+                  imageUrl={url}
+                  alt={alt}
+                  focalX={focalX}
+                  focalY={focalY}
+                  focalZoom={focalZoom}
+                  onChange={onFocalChange}
+                  referenceFrame={SERVICE_CARD_FRAME}
+                  mirrorFrames={[SERVICE_HERO_FRAME]}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={url}
+                  alt=""
+                  className="h-28 w-full rounded-lg object-cover"
+                />
+              )}
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {index !== 0 && (
                   <button

@@ -68,6 +68,11 @@ export default function ArticleEditorForm({
   const [featuredImageAlt, setFeaturedImageAlt] = useState(
     initialData?.featured_image_alt ?? ""
   );
+  const [focalX, setFocalX] = useState<number | null>(initialData?.focal_x ?? null);
+  const [focalY, setFocalY] = useState<number | null>(initialData?.focal_y ?? null);
+  const [focalZoom, setFocalZoom] = useState<number | null>(
+    initialData?.focal_zoom ?? null
+  );
   const [isPublished, setIsPublished] = useState(
     initialData?.is_published ?? false
   );
@@ -109,6 +114,9 @@ export default function ArticleEditorForm({
     tags,
     featuredImageUrl,
     featuredImageAlt,
+    focalX,
+    focalY,
+    focalZoom,
     isPublished,
     publishedAt,
     metaTitle,
@@ -183,6 +191,9 @@ export default function ArticleEditorForm({
       setTags(Array.isArray(d.tags) ? d.tags : []);
       setFeaturedImageUrl(d.featuredImageUrl ?? "");
       setFeaturedImageAlt(d.featuredImageAlt ?? "");
+      setFocalX(d.focalX ?? null);
+      setFocalY(d.focalY ?? null);
+      setFocalZoom(d.focalZoom ?? null);
       setIsPublished(!!d.isPublished);
       setPublishedAt(d.publishedAt ?? "");
       setMetaTitle(d.metaTitle ?? "");
@@ -258,6 +269,9 @@ export default function ArticleEditorForm({
       tags,
       featured_image_url: featuredImageUrl || null,
       featured_image_alt: featuredImageAlt || null,
+      focal_x: focalX,
+      focal_y: focalY,
+      focal_zoom: focalZoom,
       is_published: shouldPublish,
       published_at: finalPublishedAt
         ? new Date(finalPublishedAt).toISOString()
@@ -453,8 +467,21 @@ export default function ArticleEditorForm({
       <ImageUploader
         value={featuredImageUrl}
         alt={featuredImageAlt}
-        onChange={setFeaturedImageUrl}
+        onChange={(url) => {
+          setFeaturedImageUrl(url);
+          setFocalX(null);
+          setFocalY(null);
+          setFocalZoom(null);
+        }}
         onAltChange={setFeaturedImageAlt}
+        focalX={focalX}
+        focalY={focalY}
+        focalZoom={focalZoom}
+        onFocalChange={({ focalX: x, focalY: y, focalZoom: z }) => {
+          setFocalX(x);
+          setFocalY(y);
+          setFocalZoom(z);
+        }}
         label={t.editor.featuredImage}
         altLabel={t.editor.featuredImageAlt}
       />
