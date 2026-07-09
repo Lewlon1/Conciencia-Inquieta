@@ -121,6 +121,14 @@ body.nav-open .mobile-close-btn{display:flex;}
 .wordmark i{font-style:italic;font-weight:600;color:var(--berenjena);}
 .tagline{font-family:var(--read);font-style:italic;font-size:clamp(1.05rem,2vw,1.4rem);color:var(--tinta);margin:18px auto 0;max-width:42rem;}
 
+/* question ticker — infinite CSS marquee, sits under the topbar logo */
+.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;background:var(--lila-soft);}
+.ticker-row{display:flex;gap:0;white-space:nowrap;width:max-content;animation:marq 34s linear infinite;}
+.ticker-row span{font-family:var(--display);font-style:italic;font-size:1rem;padding:11px 0;color:var(--berenjena);}
+.ticker-row span::after{content:"·";padding:0 22px;color:var(--ambar);font-style:normal;}
+@keyframes marq{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.ticker:hover .ticker-row{animation-play-state:paused;}
+
 /* "La Pregunta" hero — weekly featured question, full-bleed lilac band */
 .hero-question{background:var(--lila-soft);position:relative;overflow:hidden;}
 .hero-question::before{content:"";position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,var(--ambar),transparent 70%);opacity:.4;bottom:-220px;left:-80px;}

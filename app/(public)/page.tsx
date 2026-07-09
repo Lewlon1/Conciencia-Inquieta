@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import ArticleCard from "@/components/public/ArticleCard";
 import LatestCarousel from "@/components/public/LatestCarousel";
+import QuestionTicker from "@/components/public/QuestionTicker";
 import SubscribeForm from "@/components/public/SubscribeForm";
 import SecondaryChannelButton from "@/components/public/SecondaryChannelButton";
 import { getPublishedArticles, getCategories } from "@/lib/content";
@@ -29,6 +30,8 @@ export default async function HomePage() {
 
   return (
     <>
+      <QuestionTicker />
+
       {lead ? (
         <div className="hero-question">
           <div className="hero-question-inner">
