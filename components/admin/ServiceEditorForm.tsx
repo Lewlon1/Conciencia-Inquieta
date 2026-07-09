@@ -43,6 +43,11 @@ export default function ServiceEditorForm({
     initialData?.image_urls ?? []
   );
   const [imageAlt, setImageAlt] = useState(initialData?.image_alt ?? "");
+  const [focalX, setFocalX] = useState<number | null>(initialData?.focal_x ?? null);
+  const [focalY, setFocalY] = useState<number | null>(initialData?.focal_y ?? null);
+  const [focalZoom, setFocalZoom] = useState<number | null>(
+    initialData?.focal_zoom ?? null
+  );
   const [sortOrder, setSortOrder] = useState(
     String(initialData?.sort_order ?? 0)
   );
@@ -108,6 +113,9 @@ export default function ServiceEditorForm({
       price_text: priceText.trim() || null,
       image_urls: imageUrls,
       image_alt: imageAlt.trim() || null,
+      focal_x: focalX,
+      focal_y: focalY,
+      focal_zoom: focalZoom,
       sort_order: Number.isFinite(parsedOrder) ? parsedOrder : 0,
       is_published: shouldPublish,
       updated_at: new Date().toISOString(),
@@ -270,6 +278,15 @@ export default function ServiceEditorForm({
         }}
         onAltChange={(alt) => {
           setImageAlt(alt);
+          markDirty();
+        }}
+        focalX={focalX}
+        focalY={focalY}
+        focalZoom={focalZoom}
+        onFocalChange={({ focalX: x, focalY: y, focalZoom: z }) => {
+          setFocalX(x);
+          setFocalY(y);
+          setFocalZoom(z);
           markDirty();
         }}
       />
