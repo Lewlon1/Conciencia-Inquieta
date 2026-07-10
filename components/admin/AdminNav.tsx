@@ -7,6 +7,7 @@ import { t } from "@/lib/admin/strings";
 
 const navLinks = [
   { label: t.nav.dashboard, href: "/admin" },
+  { label: t.nav.analytics, href: "/admin/analytics" },
   { label: t.nav.articles, href: "/admin/articles" },
   // Magazine services showcase + booking requests. This is NOT the inherited
   // Astro-Psyche Lab "service price management" tool gated by
@@ -15,6 +16,7 @@ const navLinks = [
   { label: t.nav.services, href: "/admin/services" },
   { label: t.nav.bookings, href: "/admin/reservas" },
   { label: t.nav.messages, href: "/admin/messages" },
+  { label: t.nav.subscribers, href: "/admin/suscriptores" },
   // Reserved, not built yet — see config/flags.ts and CLAUDE.md golden rules.
   ...(FLAGS.contentGenerationTools
     ? [{ label: t.nav.contentTools, href: "/admin/content-tools" }]

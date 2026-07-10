@@ -266,3 +266,96 @@ Lewis asked for the admin to be able to preview how the featured/cover image wil
 1. Lewis: run the two pending migrations (`0008` full re-run, `0009` storage section, `0010`), fix the Supabase MCP connection, then do the manual admin smoke test above.
 2. Merge `worktree-image-focal-point` once the manual smoke test passes.
 3. Consider the admin-list-thumbnail follow-up if Marie ever notices those small icons cropping oddly.
+
+---
+
+## Session 8 — 2026-07-09 — First-party analytics suite + admin dashboard (Phase 0+1)
+
+Lewis asked to "plan a full analytics suite and dashboard in the admin portal," then to build it. Planned first (`docs/superpowers/plans/2026-07-09-analytics-suite-design-and-plan.md`), got three decisions, then built.
+
+### Decisions (from Lewis, before building)
+- **First-party table, no external provider.** Lewis pushed back on needing Plausible/Umami at all — "can we not just build custom like for astro lab and connect via supabase?" Yes. Dropped the provider dependency entirely; the Plausible/Umami hooks in `Analytics.tsx` stay but are dormant. We own the load-bearing 10% of a web-analytics tool: cookieless uniques (salted daily hash), bot filtering, source classification, geo/device from Vercel headers.
+- **Both audiences, tabbed** — `/admin/analytics` with a **Resumen** tab (conversion funnel for Lewis) and a **Contenido** tab (per-article editorial view for Marie).
+
+### What changed
+- **Migration `0011_analytics_events.sql`** (NOT applied — standing Supabase-MCP blocker): `analytics_events` table (bigint id, event name + path/slug/utm/source/country/device/`visitor_hash`/`props jsonb`), RLS mirroring `contact_messages`/`service_bookings` (public INSERT, admin SELECT, **REVOKE SELECT from anon** because 0007 auto-grants it). Plus **`analytics_summary(_from,_to) → jsonb`** — one SQL function powering the whole dashboard (KPIs + previous-period deltas, funnel, signups-by-channel, daily trend, per-article perf with same-day signup attribution). SECURITY INVOKER so it runs under the caller's RLS; EXECUTE revoked from PUBLIC, granted to `authenticated`.
+- **Ingestion**: `lib/analytics/ingest.ts` (salted daily `visitor_hash` = sha256(day+ip+ua+`ANALYTICS_SALT`), truncated, **IP/UA never stored**; UA bot denylist; UTM→referrer source classifier with Spanish labels "Directo"/"Búsqueda"; device parse; prop sanitizer) + `app/api/track/route.ts` (anon-client insert, **every path returns 204**, never throws into the page).
+- **Client wiring** (`components/public/Analytics.tsx`): `ciTrack` now beacons every event to `/api/track` via `sendBeacon`/keepalive, alongside the dormant provider hooks. Added a first-party **`pageview`** on first load + every route change (`usePathname`). Existing events (`signup`/`cta_click`/`channel_click`/`article_read`/`scroll_depth`) reach the sink for free through the same choke point. New env: `ANALYTICS_SALT` (server-only) + `NEXT_PUBLIC_ANALYTICS_INGEST` kill switch.
+- **Dashboard**: `lib/analytics/queries.ts` (single data-access boundary — calls the RPC, returns `EMPTY_SUMMARY` and never throws when unmigrated, so it's safe to deploy before `0011` — same guard idea as the services `PGRST205` fix). `app/(admin)/admin/analytics/page.tsx` (dynamic, tabs+range via query params, no client JS for nav) + `components/admin/analytics/*` (StatTiles, Funnel, BarList, TrendChart, ArticleTable, DashboardTabs, palette). "Analíticas" added to `AdminNav`; all copy in `lib/admin/strings.ts`.
+- **Charts follow the dataviz skill**: validated the 2-hue categorical palette with the skill's script (amber `#d97706` = signups/goal, violet `#6d5bd0` = primary; CVD ΔE 119, all checks pass on the light admin surface). Single-series magnitude = one hue no legend; the 2-series trend has a legend + hover crosshair/tooltip. Zero new chart deps (inline SVG/CSS bars).
+
+### Privacy posture (deliberate)
+No cookie, no stored IP, no stored raw UA — only the daily-rotating non-reversible hash + coarse country/device/source. Keeps it in the same consent-free bucket as the existing cookieless setup; Meta Pixel stays consent-gated. `/cookies` + `/privacidad` copy should be updated to describe first-party analytics (deferred — flag for the same lawyer pass the other legal pages need).
+
+### Verified
+- `npx tsc --noEmit` clean (whole project, after `npm install` in the fresh container). No ESLint config in the repo, so lint isn't a gate.
+- **Visual**: fixture-mocked `getAnalyticsSummary` behind a temp `ANALYTICS_FIXTURE` env guard + temp auth bypass (middleware/layout), ran `next dev`, Playwright-screenshotted both tabs at 1440px and the trend hover. Confirmed: nav entry, stat tiles with arrow+colour deltas, funnel (violet stages + amber goal), amber source bars, trend area/line + legend + working crosshair tooltip ("28 de junio / Visitantes / Suscripciones"), editorial bar-list + table. Fixed a tooltip clip (was `-translate-y-full` off the card top → pinned inside). **All temp fixture/bypass code reverted** (grep-confirmed clean; middleware/layout `git checkout`-ed).
+
+### Blockers — need Lewis
+- **Apply `0011_analytics_events.sql` by hand** in the CI Supabase SQL editor (`lfyerbxqfwjjftcpjzbv`) — same standing MCP-points-at-wrong-project blocker as every prior migration. Until then the dashboard renders its empty state (safe) and no events are stored.
+- **Set `ANALYTICS_SALT`** (any long random string) in the env / Vercel — without it events still record but uniques aren't counted.
+- **Vercel-only headers**: `x-vercel-ip-country` + real client IP are absent locally, so country/uniques only fully populate on a Vercel deploy. Verify on a preview.
+- Couldn't exercise real end-to-end ingestion (sandbox has no live Supabase egress) — after applying `0011`, smoke-test: visit the public site, then confirm rows land in `analytics_events` and the dashboard populates.
+
+### Out of scope / noted, not built (Phase 2+)
+- **MailerLite reconciliation** (site signups vs confirmed subscribers) — placeholder card is in the Resumen tab; needs a real `MAILERLITE_API_KEY` pull.
+- **Rollup + pruning** (`analytics_daily` + daily job) — the dashboard queries raw events directly; fine at launch traffic, add the rollup when the table grows.
+- Rate-limiting on `/api/track` (public beacon; bot filter + known-event whitelist + prop sanitizer limit the blast radius for now).
+- Legal-page copy update for first-party analytics.
+
+### Next step
+1. Lewis: apply `0011`, set `ANALYTICS_SALT`, deploy; smoke-test ingestion end-to-end on a Vercel preview.
+2. Phase 2 when wanted: wire the MailerLite reconciliation pull; add the daily rollup once volume justifies it.
+
+### Follow-up (same session) — finished the code side (Phase 2 + hardening + legal)
+Lewis asked to "finish these tasks." Did everything that's code (the operational finish line — apply `0011`, set the salt, deploy — is his, unchanged; the Supabase MCP still can't reach the project):
+- **MailerLite reconciliation** (`lib/analytics/mailerlite.ts` + `components/admin/analytics/MailerliteCard.tsx`): pulls the group's `active_count`/`unconfirmed_count` from the Connect API `GET /api/groups/{id}` (same `MAILERLITE_*` secrets as `/api/suscribir`), shows confirmed vs unconfirmed vs confirmation-rate vs period site-signups. Null-safe (unconfigured/failure → a "connect it" dashed card, never throws). Replaced the Resumen placeholder; page fetches it in parallel and only on the Resumen tab. Copy states plainly that MailerLite counts are current list totals, not period-scoped.
+- **Legal copy** (`/cookies`, `/privacidad`): the pages still said "Plausible o Umami" — corrected to describe the **first-party, cookieless, Supabase-hosted** analytics honestly (no cookies, no IP stored, daily anonymous irreversible hash → no consent needed). Folded analytics into the Supabase "encargado" bullet, dropped the Plausible/Umami one. The "plantilla, revisar" caveat stays — still needs the lawyer pass.
+- **`/api/track` hardening**: added a **same-origin guard** (drop beacons whose `Origin` is a different site; missing Origin allowed so legit events aren't dropped). Deliberately did NOT ship an in-memory rate-limiter — it's useless on serverless (per-instance state); real rate-limiting needs a KV store (infra-gated, noted).
+- **Retention** (`0012_analytics_prune.sql`): `prune_analytics_events(retention_days=180)` SECURITY DEFINER (pinned search_path), EXECUTE for `authenticated` only, + a documented (commented) pg_cron daily schedule. **Skipped the `analytics_daily` aggregation rollup on purpose** — premature at launch traffic; documented why in the migration header.
+- Verified: `tsc --noEmit` clean; fixture-screenshot of the populated MailerLite card (temp guards reverted). Migrations `0011`+`0012` both still await manual apply.
+
+---
+
+## Housekeeping — 2026-07-09 — Branch cleanup + Marie handover doc
+
+Non-code session: tidy old branches + prepare the handover to Marie.
+
+### Branch cleanup (verified before deleting, per Lewis's ask)
+- **All remote branches were fully merged** into `origin/main` (0 commits ahead each): the 5 `claude/*` Claude Code session branches + `pr/image-focal-point` + `pr/local-design-canonical`. Deleted all 7 from the remote.
+- **Local merged branches deleted**: `claude/question-ticker-banner`, `pr/image-focal-point`, `pr/local-design-canonical`, `worktree-image-focal-point`.
+- **Stale worktree removed**: `.claude/worktrees/image-focal-point` (branch `worktree-image-focal-point`, at merged commit 95e2535 — the focal-point work is already in main via PR #3). Empty `.claude/worktrees/` dir cleaned up too.
+- **`feat/burger-nav-centered-logo` force-deleted** (`-D`). It was a *separate-root* parallel copy of the whole app ("no merge base" with main), from 2026-07-08. Verified superseded: its nav redesign (`Topbar.tsx` + `NavOverlay.tsx`) is **byte-identical to main**, and its transparent logo (`public/conciencia-logo.png`) is already on main. Its only unique delta was the *absence* of the Services feature — which main intentionally has. Nothing of value lost.
+- **End state**: only `main` locally and `origin/main` remotely; one worktree (the main checkout).
+
+### Handover doc
+- Wrote `docs/handover-marie.md` — Marie-facing: what the site is, the full feature list (public + admin + integrations), a 15-min guided admin tour, deliberate scope boundaries, the "before launch" checklist (the 3 pending migrations + MailerLite/analytics env vars + smoke tests, all carried over from the sessions above), and roadmap ideas. Written in **English** (matched Lewis's request); flagged that a Spanish version likely serves Marie better if it goes to her directly — offered, not yet done.
+
+### Note / no change
+- Confirmed `/servicios` on main is the deliberately-built public Services feature (page + `ServiceCard` + admin CRUD from the merged `services-tab-admin-portal` branch), **not** the flagged-off `servicePriceManagement` tool (still `false`, unported). No golden-rule issue.
+
+### Next step
+- Unchanged from the two sessions above: the pending migrations + env vars + Supabase MCP reconnection remain the real blockers to a fully-working launch (now consolidated in `docs/handover-marie.md` §5).
+
+---
+
+## Session 8 — 2026-07-09 — Collect emails directly (MailerLite deferred)
+
+Marie hasn't used MailerLite, so signups now land in Supabase and she views/exports them from `/admin/suscriptores`; MailerLite is kept dormant.
+
+### What changed
+- **Migration `0011_subscribers.sql`** (NOT applied — manual, same blocker): `subscribers` (`email` UNIQUE, `source`, `created_at`). RLS mirrors `service_bookings` — public INSERT, admin full, `REVOKE SELECT … FROM anon` (email list is PII). No build-time public read of the table, so `next build` is green before it's applied (unlike the services rollout).
+- **`config/flags.ts`**: added `mailerliteSync: false`. **`app/api/suscribir/route.ts`**: active path now inserts into `subscribers` (email lowercased → natural dedup; `23505` treated as success); MailerLite `fetch` kept as an inert helper that only runs when the flag is on + `MAILERLITE_*` set (best-effort, never fails the signup).
+- **Admin**: `/admin/suscriptores` (`SubscribersTable`) lists email · source · date with an **Exportar CSV** button (`lib/csv.ts`, RFC-4180 escaping); nav link + dashboard "Suscriptores" count added.
+- **Copy**: signup success + `/unete` note no longer promise a confirmation email; **`privacidad`** rewritten (email stored directly, no external processor/opt-in email yet, baja via Contacto), MailerLite removed from the processors list.
+
+### Decisions
+- **[Likely]** Single opt-in is lawful consent under RGPD given clear notice; double opt-in is **deferred** to the eventual MailerLite import (import the CSV → MailerLite sends its confirmation then), not lost.
+- **[Certain]** No `is_active`/self-serve unsubscribe (Marie deletes a row); no dual-write now.
+
+### Blockers — need Lewis
+- Apply `0011_subscribers.sql` by hand (`lfyerbxqfwjjftcpjzbv`) — until then the admin list is empty and signups fail at runtime (build is unaffected).
+- Manual smoke test: submit on `/unete` → "¡Ya estás en la lista!" → row in `/admin/suscriptores` (correct source) → Exportar CSV opens correctly → resubmit same email stays `ok=1` with no duplicate.
+
+### Next step
+- Re-enable path when Marie's ready: import the CSV into MailerLite, set `mailerliteSync: true` + `MAILERLITE_*`, restore the MailerLite line in `privacidad`.

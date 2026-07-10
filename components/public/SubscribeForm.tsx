@@ -31,10 +31,10 @@ export default function SubscribeForm({ source, dark = false }: Props) {
       <div className="subscribe-block">
         <div className="success">
           <div className="tick">✓</div>
-          <h3>Revisa tu correo</h3>
+          <h3>¡Ya estás en la lista!</h3>
           <p>
-            Te hemos enviado un email para confirmar tu suscripción (doble
-            opt-in). Sin confirmar, no recibirás nada.
+            Gracias por suscribirte. Te escribiremos pronto con lo nuevo de
+            Conciencia Inquieta.
           </p>
         </div>
       </div>

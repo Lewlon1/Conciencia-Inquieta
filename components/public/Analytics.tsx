@@ -2,15 +2,65 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
-// Cookieless analytics (Plausible/Umami) loads unconditionally — no cookies/PII,
-// no consent needed. Meta Pixel is consent-gated: fbq is NEVER loaded until the
-// visitor accepts (or has already accepted). Everything no-ops gracefully if the
-// corresponding env var is unset.
+// First-party, cookieless analytics. window.ciTrack beacons every event to our
+// own /api/track sink (see lib/analytics + migration 0011) — no cookies/PII, no
+// consent needed. The Plausible/Umami hooks below stay for optional external
+// use but are dormant unless a provider is provisioned. Meta Pixel is
+// consent-gated: fbq is NEVER loaded until the visitor accepts. Everything
+// no-ops gracefully if the corresponding env var is unset.
 const PROVIDER = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER || "plausible";
 const ANALYTICS_DOMAIN = process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN;
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const CONSENT_KEY = "ci_consent";
+// Kill switch: set NEXT_PUBLIC_ANALYTICS_INGEST=off to stop first-party beacons.
+const INGEST_ON = process.env.NEXT_PUBLIC_ANALYTICS_INGEST !== "off";
+
+// Article/service/category slug from the current path, so pageviews on those
+// pages carry a slug too (article_read already passes its own).
+function currentSlug(): string | undefined {
+  const m = window.location.pathname.match(/^\/(?:articulos|servicios|categoria)\/([^/]+)/);
+  return m ? decodeURIComponent(m[1]) : undefined;
+}
+
+function readUtm() {
+  const p = new URLSearchParams(window.location.search);
+  const source = p.get("utm_source") || undefined;
+  const medium = p.get("utm_medium") || undefined;
+  const campaign = p.get("utm_campaign") || undefined;
+  if (!source && !medium && !campaign) return undefined;
+  return { source, medium, campaign };
+}
+
+// Fire-and-forget beacon to the first-party sink. sendBeacon survives page
+// unload (important for click/navigation events); falls back to keepalive fetch.
+// Wrapped so analytics can never throw into the page.
+function beacon(name: string, props?: Record<string, string>) {
+  if (!INGEST_ON || typeof window === "undefined") return;
+  try {
+    const payload = JSON.stringify({
+      name,
+      path: window.location.pathname,
+      slug: props?.slug || currentSlug(),
+      referrer: document.referrer || undefined,
+      utm: readUtm(),
+      props,
+    });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }));
+    } else {
+      void fetch("/api/track", {
+        method: "POST",
+        body: payload,
+        headers: { "Content-Type": "application/json" },
+        keepalive: true,
+      });
+    }
+  } catch {
+    /* analytics must never break the page */
+  }
+}
 
 function loadPixel(pixelId: string) {
   if (window.fbq) return;
@@ -30,10 +80,13 @@ function loadPixel(pixelId: string) {
 
 export default function Analytics() {
   const [showBanner, setShowBanner] = useState(false);
+  const pathname = usePathname();
 
   // ciTrack + delegated [data-event] click tracking (runs once).
   useEffect(() => {
     window.ciTrack = (event, props) => {
+      // First-party sink first (always on), then the optional/dormant providers.
+      beacon(event, props);
       try {
         window.plausible?.(event, { props: props || {} });
         window.umami?.track(event, props || {});
@@ -51,6 +104,11 @@ export default function Analytics() {
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
   }, []);
+
+  // First-party pageview on first load and every client-side route change.
+  useEffect(() => {
+    beacon("pageview");
+  }, [pathname]);
 
   // Consent gate for the Meta Pixel.
   useEffect(() => {

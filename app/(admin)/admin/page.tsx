@@ -16,6 +16,7 @@ export default async function AdminDashboardPage() {
     { count: publishedArticles },
     { count: totalServices },
     { count: unreadBookings },
+    { count: totalSubscribers },
     { data: recentArticles },
   ] = await Promise.all([
     supabase.from("articles").select("*", { count: "exact", head: true }),
@@ -28,6 +29,7 @@ export default async function AdminDashboardPage() {
       .from("service_bookings")
       .select("*", { count: "exact", head: true })
       .eq("is_read", false),
+    supabase.from("subscribers").select("*", { count: "exact", head: true }),
     supabase
       .from("articles")
       .select("*, category:categories(*), author:authors(*)")
@@ -41,6 +43,7 @@ export default async function AdminDashboardPage() {
     { label: t.dashboard.published, value: publishedArticles ?? 0 },
     { label: t.dashboard.services, value: totalServices ?? 0 },
     { label: t.dashboard.pendingBookings, value: unreadBookings ?? 0 },
+    { label: t.dashboard.subscribers, value: totalSubscribers ?? 0 },
   ];
 
   return (
