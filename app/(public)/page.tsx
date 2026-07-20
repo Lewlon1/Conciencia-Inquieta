@@ -35,13 +35,11 @@ export default async function HomePage() {
       {lead ? (
         <div className="hero-question">
           <div className="hero-question-inner">
-            <div className="kicker">Una pregunta cada semana</div>
             <h1 className="hq-title">
-              ¿Quién cuida a quienes <em>cuidan?</em>
+              Noticias que importan, conversaciones que faltan, reflexiones que sanan
             </h1>
             <p className="hq-sub">
-              Cada semana abrimos una conversación que las noticias no hacen.
-              Esta es la de ahora.
+              Abrimos conversaciones que los medios tradicionales no suelen tener.
             </p>
             <div className="hq-actions">
               <a className="btn-dark" href={`/articulos/${lead.slug}`}>
