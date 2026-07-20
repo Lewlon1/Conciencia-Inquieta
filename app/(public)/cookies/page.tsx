@@ -37,9 +37,10 @@ export default function CookiesPage() {
               <b>Analítica propia sin cookies.</b> Medimos las visitas con un
               sistema propio, alojado en nuestra base de datos, que no usa cookies
               ni almacena tu dirección IP. Para contar visitantes únicos sin
-              identificarte, generamos un identificador temporal que cambia cada
-              día y no permite reconstruir quién eres — no requiere tu
-              consentimiento.
+              identificarte, generamos un identificador diario seudonimizado que
+              cambia cada día y que no utilizamos para saber quién eres — no
+              requiere tu consentimiento. Puedes ver qué datos tratamos en la{" "}
+              <Link href="/privacidad">política de privacidad</Link>.
             </li>
             <li>
               <b>Preferencia de cookies.</b> Cuando aceptas o rechazas el aviso de

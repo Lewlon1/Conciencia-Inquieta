@@ -47,10 +47,14 @@ export function parseDevice(ua: string | null): "mobile" | "tablet" | "desktop" 
   return "desktop";
 }
 
-// Daily-rotating anonymous visitor id. The UTC date is part of the input so it
-// changes on its own every midnight; the salt makes it non-recomputable without
-// the server secret. Truncated to 32 hex chars — plenty to avoid collisions at
-// our scale, and never reversible to a person.
+// Daily-rotating pseudonymous visitor id. The UTC date is part of the input so
+// it changes on its own every midnight; the salt makes it non-recomputable
+// WITHOUT the server secret. Truncated to 32 hex chars — plenty to avoid
+// collisions at our scale. Honest framing: because the salt is persistent, this
+// is a PSEUDONYMOUS identifier (a known IP+UA could be recomputed to its hash
+// while the row is retained), not a truly anonymous one — retention (migration
+// 0012) bounds that window. It stores no PII directly and is never used to
+// identify a person; the legal copy says "seudonimizado", matching this.
 export function visitorHash(ip: string, ua: string, salt: string): string {
   const day = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
   return createHash("sha256").update(`${day}|${ip}|${ua}|${salt}`).digest("hex").slice(0, 32);

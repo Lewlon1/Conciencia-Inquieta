@@ -55,10 +55,15 @@ export default function PrivacidadPage() {
           <p>
             <b>Analítica.</b> Medimos el uso del sitio con un sistema de analítica
             propio, sin cookies, alojado en nuestra base de datos (Supabase). No
-            usa cookies, no almacena direcciones IP ni identifica a personas
-            concretas: para contar visitantes únicos generamos un identificador
-            diario, anónimo e irreversible. Por eso no requiere consentimiento
-            bajo el RGPD.
+            usa cookies ni almacena tu dirección IP ni tu navegador (user-agent).
+            Para contar visitantes únicos sin identificarte generamos un
+            identificador diario seudonimizado, que rota cada día y que no
+            utilizamos para saber quién eres. Junto a cada visita guardamos solo
+            datos aproximados y no identificativos: el país (deducido de la red,
+            sin guardar la IP), el tipo de dispositivo (móvil, tableta u
+            ordenador), el dominio desde el que llegas y los parámetros de campaña
+            (UTM) del enlace. Al no usar cookies ni identificadores directos, se
+            apoya en nuestro interés legítimo y no requiere consentimiento previo.
           </p>
           <p>
             <b>Píxel de Meta.</b> Si lo aceptas en el aviso de cookies, activamos
@@ -70,7 +75,9 @@ export default function PrivacidadPage() {
           <p>
             El tratamiento se basa en tu consentimiento explícito (suscripción al
             boletín, aceptación del Píxel) o en la ejecución de una solicitud tuya
-            (formulario de contacto).
+            (formulario de contacto). La analítica propia sin cookies se apoya en
+            nuestro interés legítimo en conocer el uso del sitio, al tratarse de
+            datos seudonimizados y sin identificadores directos.
           </p>
 
           <h2>4. Encargados y destinatarios</h2>
@@ -101,7 +108,8 @@ export default function PrivacidadPage() {
           <p>
             Los datos del boletín se conservan mientras sigas suscrito/a. Los
             mensajes de contacto se conservan el tiempo necesario para atenderlos
-            y con fines de registro interno.
+            y con fines de registro interno. Los datos de analítica se conservan
+            un máximo de 180 días y después se eliminan automáticamente.
           </p>
 
           <h2>6. Tus derechos</h2>

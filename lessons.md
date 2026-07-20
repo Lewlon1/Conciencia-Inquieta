@@ -359,3 +359,27 @@ Marie hasn't used MailerLite, so signups now land in Supabase and she views/expo
 
 ### Next step
 - Re-enable path when Marie's ready: import the CSV into MailerLite, set `mailerliteSync: true` + `MAILERLITE_*`, restore the MailerLite line in `privacidad`.
+
+---
+
+## Session 9 — 2026-07-20 — Analytics review, first executed SQL, tests & fixes
+
+Lewis asked to review + test the analytics section end-to-end and make sure it works toward the subscribe goal. Ran a 6-dimension adversarial review (SQL, ingestion, client capture, dashboard, privacy, goal-alignment; every finding refute-tested — 27 survived) **and**, for the first time, actually executed the pipeline instead of reasoning about it.
+
+### First-ever execution (the standing "can't reach live Supabase" blocker, worked around)
+- Stood up a throwaway **Postgres 16** locally (`/usr/lib/postgresql/16/bin`, unprivileged user, short socket path), applied the **real** migrations `0011`+`0012`(+new `0013`) verbatim against hand-seeded fixtures with pre-computed expected values.
+- **Verified:** `analytics_summary` aggregates 29/29 (KPIs, prev-period deltas, funnel, by_source, sources, trend, per-article + signup attribution, inclusive/exclusive window boundaries, null/empty-slug exclusion); RLS/grants 7/7 (anon insert-only; authenticated read+RPC+prune; anon blocked); `prune_analytics_events` deletes only past-retention. The aggregation math + privacy posture are **correct**.
+- Added the repo's **first test suite** — `test/` run via Node's built-in runner (`npm test`, zero new deps, `--experimental-strip-types` + a tiny `@/`-alias loader). 14 unit tests over `ingest.ts` (bot filter, source classifier, `visitorHash` determinism/privacy, sanitizers) + `queries.ts` pure helpers. `tsc` clean; `next build` compiles (only fails at public static-gen hitting a fake Supabase host — the usual no-live-DB sandbox limit).
+
+### Fixes shipped (all verified)
+- **`0013_analytics_summary_attribution_fix.sql`** (function-only `CREATE OR REPLACE`, apply after `0011`): fixes per-article signup **over-attribution** — the old `article_signups` credited a signup to EVERY article the visitor read that day, so the "Suscrip." column summed to more than real signups. Now last-touch (last read at/before the signup) → each signup credits one slug, sum ≤ real signups. Proven with a discriminating fixture (multi-read-then-signup) + a sum-invariant check; the other 29 assertions still pass.
+- **Ingestion trust** (`app/api/track/route.ts`): fail loudly (log once) when `ANALYTICS_SALT` is unset (it silently nulls every hash → visitors + funnel collapse to 0), and log Supabase insert `{error}` (still 204) so a broken pipeline is diagnosable instead of a silent flatline.
+- **Client capture:** `SubscribeForm` fires `signup` at most once per success (sessionStorage one-shot — `?ok=1` survives reloads/bfcache and was re-inflating the headline metric); `ArticleTracker` runs the 75%-scroll check once on mount (short/non-scrolling articles never emitted a scroll event → looked unread); `Analytics` checks `sendBeacon`'s return value and falls back to keepalive `fetch`.
+- **Dashboard — conversion by channel** (`SourceTable` + `page.tsx`): the "by channel" card showed only raw signup counts (ranks by volume, actively misleading). Now shows signups · visitors · **conversion %** per channel, merging the previously-unused `summary.sources` (visitors-by-channel) with `by_source`. UI-only, no new SQL.
+- **A11y** (`TrendChart`): pointer/touch handlers (was mouse-only → no numbers on mobile) + a visually-hidden data `<table>` for screen readers.
+- **Privacy copy accuracy** (`privacidad`, `cookies`, `ingest.ts` comment): the persistent salt makes the hash **pseudonymous, not "anónimo e irreversible"** — corrected the wording, disclosed the data categories actually stored (país/dispositivo/dominio-referente/UTM), added the 180-day analytics retention, and added legitimate-interest as the analytics legal basis.
+
+### Blockers / next steps — need Lewis
+- **Apply `0013`** in the CI Supabase SQL editor (`lfyerbxqfwjjftcpjzbv`) after `0011` — same standing manual-migration blocker. Also note: `0011_analytics_events.sql` and `0011_subscribers.sql` **share the number 0011** (harmless when applied by hand; would confuse `supabase db push`).
+- **Enable retention**: uncomment the `pg_cron` schedule in `0012` (or an external caller of `prune_analytics_events(180)`) so the "180 días" privacy claim is true.
+- **Highest-leverage deferred fix (recommended, not done — needs live-DB verification):** drive the headline Signups KPI + a signups-**by-placement** view from the authoritative `subscribers` table (unique email, server-side `source`) instead of the lossy client `signup` beacon. This collapses several findings at once (beacon loss, re-fire inflation, null-hash count divergence). Also deferred: exclude staff/admin traffic; a `/unete` form-view→submit funnel; conversion-by-device (column already collected); surface `channel_click`; funnel stages are independent sets (bottom can render wider than middle — relabel or make nested).
