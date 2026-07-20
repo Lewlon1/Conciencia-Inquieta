@@ -10,6 +10,7 @@ import DashboardTabs, { type Tab } from "@/components/admin/analytics/DashboardT
 import StatTiles from "@/components/admin/analytics/StatTiles";
 import Funnel from "@/components/admin/analytics/Funnel";
 import BarList from "@/components/admin/analytics/BarList";
+import SourceTable from "@/components/admin/analytics/SourceTable";
 import TrendChart from "@/components/admin/analytics/TrendChart";
 import ArticleTable from "@/components/admin/analytics/ArticleTable";
 import MailerliteCard from "@/components/admin/analytics/MailerliteCard";
@@ -46,7 +47,24 @@ export default async function AnalyticsPage({
   ]);
   const empty = summaryIsEmpty(summary);
 
-  const sourceItems = summary.by_source.map((s) => ({ label: s.source, value: s.signups }));
+  // Merge signups-by-channel (by_source) with visitors-by-channel (sources, until
+  // now unused) so every channel shows its conversion RATE, not just raw signup
+  // volume — including channels that drew visitors but converted none.
+  const visitorsByChannel: Record<string, number> = {};
+  summary.sources.forEach((s) => {
+    visitorsByChannel[s.source] = s.visitors;
+  });
+  const channelRows: { source: string; visitors: number; signups: number }[] = [];
+  const seenChannels = new Set<string>();
+  summary.by_source.forEach((s) => {
+    seenChannels.add(s.source);
+    channelRows.push({ source: s.source, signups: s.signups, visitors: visitorsByChannel[s.source] ?? 0 });
+  });
+  summary.sources.forEach((s) => {
+    if (seenChannels.has(s.source)) return; // already added with its signups
+    channelRows.push({ source: s.source, signups: 0, visitors: s.visitors });
+  });
+  channelRows.sort((a, b) => b.signups - a.signups || b.visitors - a.visitors);
   const topArticles = summary.articles
     .slice(0, 8)
     .map((a) => ({ label: a.slug, value: a.reads }));
@@ -67,11 +85,7 @@ export default async function AnalyticsPage({
           <div className="grid lg:grid-cols-2 gap-6">
             <Funnel funnel={summary.funnel} />
             <Card title={t.analytics.sourcesTitle}>
-              <BarList
-                items={sourceItems}
-                color={CHART.signups}
-                emptyText={t.analytics.sourcesEmpty}
-              />
+              <SourceTable rows={channelRows} />
             </Card>
           </div>
           <TrendChart points={trend} />

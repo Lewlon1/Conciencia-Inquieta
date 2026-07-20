@@ -134,10 +134,14 @@ export const t = {
     funnelSignups: "Se suscribieron",
     ofVisitors: "de visitantes",
     // Sources
-    sourcesTitle: "Suscripciones por canal",
+    sourcesTitle: "Conversión por canal",
     sourcesEmpty: "Aún sin suscripciones en este periodo.",
+    colChannel: "Canal",
+    colVisitors: "Visitantes",
+    colConversion: "Conversión",
     // Trend
     trendTitle: "Visitantes y suscripciones por día",
+    trendDay: "Día",
     legendVisitors: "Visitantes",
     legendSignups: "Suscripciones",
     // Content tab

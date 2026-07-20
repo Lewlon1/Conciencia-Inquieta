@@ -76,7 +76,7 @@ export default function TrendChart({ points }: { points: TrendPoint[] }) {
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="w-full"
-          style={{ height: "auto" }}
+          style={{ height: "auto", touchAction: "none" }}
           onMouseLeave={() => setActive(null)}
           role="img"
           aria-label={t.analytics.trendTitle}
@@ -142,7 +142,7 @@ export default function TrendChart({ points }: { points: TrendPoint[] }) {
             </>
           )}
 
-          {/* invisible hover bands */}
+          {/* invisible hover/tap bands — pointer events cover mouse, pen AND touch */}
           {points.map((pt, i) => (
             <rect
               key={pt.day}
@@ -151,10 +151,33 @@ export default function TrendChart({ points }: { points: TrendPoint[] }) {
               width={band}
               height={INNER_H}
               fill="transparent"
-              onMouseEnter={() => setActive(i)}
+              onPointerEnter={() => setActive(i)}
+              onPointerDown={() => setActive(i)}
             />
           ))}
         </svg>
+
+        {/* Screen-reader / no-pointer fallback: the SVG tooltip is pointer-only,
+            so expose every day's numbers as a real (visually hidden) table. */}
+        <table className="sr-only">
+          <caption>{t.analytics.trendTitle}</caption>
+          <thead>
+            <tr>
+              <th>{t.analytics.trendDay}</th>
+              <th>{t.analytics.legendVisitors}</th>
+              <th>{t.analytics.legendSignups}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {points.map((pt) => (
+              <tr key={pt.day}>
+                <td>{fmtDay(pt.day, true)}</td>
+                <td>{fmt.format(pt.visitors)}</td>
+                <td>{fmt.format(pt.signups)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {p && (
           <div
