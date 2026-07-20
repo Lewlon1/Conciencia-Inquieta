@@ -20,10 +20,22 @@ export default function SubscribeForm({ source, dark = false }: Props) {
   const succeeded = ok === "1";
   const errored = ok === "0";
 
+  // Fire the `signup` event at most once per success. `succeeded` is derived from
+  // the ?ok=1 query string, which survives reloads, bfcache restores and shared
+  // links — without a guard each of those re-fires signup and inflates the single
+  // headline conversion metric. A sessionStorage one-shot (keyed by placement)
+  // makes a reload a no-op while still allowing a genuine new signup elsewhere.
   useEffect(() => {
-    if (succeeded) {
-      window.ciTrack?.("signup", { source: params.get("source") || "unknown" });
+    if (!succeeded) return;
+    const src = params.get("source") || "unknown";
+    const key = `ci_signup_fired:${src}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      /* private mode: no persistence — accept the rare reload double-fire */
     }
+    window.ciTrack?.("signup", { source: src });
   }, [succeeded, params]);
 
   if (succeeded) {

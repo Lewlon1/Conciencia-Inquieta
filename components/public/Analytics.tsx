@@ -47,9 +47,12 @@ function beacon(name: string, props?: Record<string, string>) {
       utm: readUtm(),
       props,
     });
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }));
-    } else {
+    // sendBeacon returns false when the UA refuses to queue (payload too large,
+    // queue full) — and is absent on older browsers. In both cases fall back to a
+    // keepalive fetch so the event isn't silently dropped.
+    const blob = new Blob([payload], { type: "application/json" });
+    const queued = navigator.sendBeacon?.("/api/track", blob) ?? false;
+    if (!queued) {
       void fetch("/api/track", {
         method: "POST",
         body: payload,

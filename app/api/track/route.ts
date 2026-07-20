@@ -20,6 +20,13 @@ export const dynamic = "force-dynamic";
 // never break or slow the page — EVERY path returns 204 fast, errors swallowed.
 const noContent = () => new NextResponse(null, { status: 204 });
 
+// Operational visibility. Two failure modes are otherwise silent and both zero
+// out the dashboard without any signal: a missing ANALYTICS_SALT nulls every
+// visitor_hash (visitors + funnel collapse to 0), and a rejected insert drops
+// the event entirely. We can't THROW (golden rule) — so we log ONCE for the salt
+// and per-error for inserts, making both visible in Vercel logs. Still 204.
+let warnedNoSalt = false;
+
 export async function POST(request: NextRequest) {
   try {
     const ua = request.headers.get("user-agent");
@@ -49,6 +56,12 @@ export async function POST(request: NextRequest) {
     // salted hash here and are never stored. No salt (or no IP) → no visitor id
     // rather than a guessable one; the event is still recorded.
     const salt = process.env.ANALYTICS_SALT;
+    if (!salt && !warnedNoSalt) {
+      warnedNoSalt = true;
+      console.error(
+        "[analytics] ANALYTICS_SALT is not set — visitor_hash will be null, so unique-visitor and funnel counts collapse to 0. Set it in the environment."
+      );
+    }
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
@@ -60,7 +73,7 @@ export async function POST(request: NextRequest) {
     const selfHost = originHost || reqHost;
 
     const supabase = getPublicSupabase();
-    await supabase.from("analytics_events").insert({
+    const { error } = await supabase.from("analytics_events").insert({
       name,
       path: cleanPath(body?.path as string | undefined),
       slug: clampStr(body?.slug, 256),
@@ -75,6 +88,10 @@ export async function POST(request: NextRequest) {
       visitor_hash: hash,
       props: sanitizeProps(body?.props),
     });
+    // Never surfaced to the client (204 regardless), but a rejected insert —
+    // stale PostgREST schema cache, a column constraint, RLS drift — would
+    // otherwise flatline the dashboard invisibly. Log it so it's diagnosable.
+    if (error) console.error("[analytics] event insert failed:", error.message);
 
     return noContent();
   } catch {

@@ -24,8 +24,13 @@ export default function ArticleTracker({ slug }: { slug: string }) {
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
+    // Short articles that fit the viewport never emit a scroll event, so 75%
+    // would never register and a fully-read short piece would look unread. Check
+    // once on the next frame (after layout) so an already-satisfied threshold fires.
+    const raf = requestAnimationFrame(onScroll);
     return () => {
       clearTimeout(readTimer);
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
     };
   }, [slug]);
