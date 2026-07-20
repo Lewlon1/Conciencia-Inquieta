@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test --experimental-strip-types --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --loader ./test/_alias-loader.mjs test/*.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
