@@ -1,6 +1,14 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { Send } from "lucide-react";
+import {
+  fieldLabel,
+  fieldInput,
+  fieldTextarea,
+  submitButton,
+  errorNote,
+} from "@/components/public/formStyles";
 
 // POST /api/reservar redirects back to /servicios/<slug>?ok=1|0, read
 // client-side (the detail page is statically rendered, so the query string
@@ -8,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 // nombre/email/telefono/mensaje/servicio/servicio_titulo — the route handler
 // maps them to service_bookings columns name/email/phone/message/
 // service_id/service_title.
+
 export default function ServiceBookingForm({
   serviceId,
   serviceTitle,
@@ -22,10 +31,14 @@ export default function ServiceBookingForm({
 
   if (ok === "1") {
     return (
-      <div className="success">
-        <div className="tick">✓</div>
-        <h3>Solicitud enviada</h3>
-        <p>
+      <div className="rounded-3xl bg-ci-purple/30 p-10 text-center">
+        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-ci-orange">
+          <Send className="h-7 w-7 text-ci-ink" aria-hidden="true" />
+        </span>
+        <p className="font-display text-xl font-bold text-ci-ink">
+          Solicitud enviada
+        </p>
+        <p className="mt-2 text-sm text-ci-ink/60">
           Gracias por tu interés. Marie se pondrá en contacto contigo pronto para
           concretar los detalles.
         </p>
@@ -34,56 +47,71 @@ export default function ServiceBookingForm({
   }
 
   return (
-    <form className="form" action="/api/reservar" method="post">
+    <form action="/api/reservar" method="post" className="space-y-5">
       <input type="hidden" name="servicio" value={serviceId} />
       <input type="hidden" name="servicio_titulo" value={serviceTitle} />
       <input type="hidden" name="slug" value={slug} />
-      <div className="field">
-        <label htmlFor="nombre">Nombre</label>
+
+      <div>
+        <label htmlFor="nombre" className={fieldLabel}>
+          Nombre
+        </label>
         <input
           type="text"
           id="nombre"
           name="nombre"
-          placeholder="Tu nombre"
           required
+          placeholder="Tu nombre"
+          className={fieldInput}
         />
       </div>
-      <div className="field">
-        <label htmlFor="email">Email</label>
+      <div>
+        <label htmlFor="email" className={fieldLabel}>
+          Email
+        </label>
         <input
           type="email"
           id="email"
           name="email"
-          placeholder="tucorreo@ejemplo.com"
           required
+          placeholder="tucorreo@ejemplo.com"
+          className={fieldInput}
         />
       </div>
-      <div className="field">
-        <label htmlFor="telefono">Teléfono</label>
+      <div>
+        <label htmlFor="telefono" className={fieldLabel}>
+          Teléfono
+        </label>
         <input
           type="tel"
           id="telefono"
           name="telefono"
-          placeholder="+34 600 000 000"
           required
+          placeholder="+34 600 000 000"
+          className={fieldInput}
         />
       </div>
-      <div className="field">
-        <label htmlFor="mensaje">Mensaje (opcional)</label>
+      <div>
+        <label htmlFor="mensaje" className={fieldLabel}>
+          Mensaje (opcional)
+        </label>
         <textarea
           id="mensaje"
           name="mensaje"
           placeholder="Cuéntanos qué necesitas o cuándo te viene bien…"
+          className={fieldTextarea}
         />
       </div>
+
       {ok === "0" && (
-        <p className="note error">
+        <p className={errorNote}>
           No hemos podido enviar tu solicitud. Revisa los datos e inténtalo de
           nuevo.
         </p>
       )}
-      <button className="btn-amber" type="submit">
-        Solicitar reserva →
+
+      <button type="submit" className={submitButton}>
+        Solicitar reserva
       </button>
     </form>
   );

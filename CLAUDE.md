@@ -37,9 +37,11 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 > The forked admin currently does **basic** article upload only. Session 2 extends it to the above.
 
 ## Brand tokens (CI's own — do NOT reuse Gabriela's design)
-- **Colours:** cream `#fff9f1` · lilac `#e9c6e9` · marigold `#fabb5c` · aubergine `#382a44` · ink `#2b2434`
-- **Type:** Fraunces (display/headlines) · Newsreader (article body) · Inter (UI)
-- Reference: the approved CI prototype.
+- **Colours:** white canvas `#ffffff` · pastel purple `#e9c6e9` (`hsl(300 45% 85%)`) · marigold `#fabb5c` (`hsl(36 94% 67%)`) · black `#000000` (inverted sections) · ink `#180a29` (`hsl(267 61% 10%)`)
+- **Type:** Clash Display (headlines, via Fontshare) · Syne (display/section heads) · Plus Jakarta Sans (body + UI)
+- Registered in `tailwind.config.ts` under `colors.ci.*` (`bg-ci-purple`, `text-ci-ink/70`, `hover:bg-ci-orange`); fonts as `.font-heading` / `.font-display` / `.font-body` utilities in `app/(public)/public.css`.
+- **Superseded (do not reintroduce on public pages):** cream `#fff9f1`, aubergine `#382a44`, ink `#2b2434`, and Fraunces/Newsreader/Inter. Purple and marigold survived the redesign unchanged. The admin still uses Fraunces/Newsreader in its editor preview and the legacy Tailwind swatches — that's deliberate, leave it.
+- Reference: the approved CI design (the Base44 prototype ported in the front-end redesign).
 
 ## Workflow
 - Branch → build → **test on staging** → deploy. Migrations staging-first.
@@ -60,8 +62,8 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 /
 ├─ app/
 │  ├─ (public)/            # PUBLIC group — OWN <html>/<body>, indexable, imports public.css
-│  │  ├─ layout.tsx        # shell (Sidebar/Topbar/Footer/NavOverlay/Analytics), Google-Fonts <link>, metadataBase, Organization JSON-LD
-│  │  ├─ public.css        # CI brand tokens (was site/src/styles/global.css), own reset — NO Tailwind
+│  │  ├─ layout.tsx        # shell (Sidebar/MobileNav/MarqueeFooter/Analytics), Google+Fontshare <link>, metadataBase, Organization JSON-LD
+│  │  ├─ public.css        # Tailwind + CI brand tokens, .prose, marquee utility (Preflight is the reset)
 │  │  ├─ page.tsx          # home (ISR revalidate=60)
 │  │  ├─ articulos/{page, [slug]/page}   # [slug]: generateStaticParams + ISR + react-markdown + NewsArticle JSON-LD
 │  │  ├─ categoria/[slug]/page.tsx
@@ -76,7 +78,7 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 │  └─ (NO app/layout.tsx — two root layouts is what isolates the two CSS systems)
 ├─ components/
 │  ├─ admin/               # AdminNav, ArticleEditorForm, ui/* (incl. AdminSelect)
-│  └─ public/              # Sidebar,Topbar,NavOverlay,SubscribeForm,ContactForm,Analytics,ArticleTracker (client); Footer,ArticleCard,SecondaryChannelButton (server)
+│  └─ public/              # Sidebar,MobileNav,HeroSlideshow,ArticleBrowser,CategoryCluster,ArticleCard,ServiceCard,SubscribeForm,ContactForm,ServiceBookingForm,Analytics,ArticleTracker (client); MarqueeFooter,PageHero,QuestionTicker,FocalImage,SecondaryChannelButton (server)
 ├─ config/flags.ts         # Lewis-only feature flags
 ├─ lib/
 │  ├─ supabase/{client,server,middleware}.ts  # admin SSR/cookie auth — /admin only
@@ -89,7 +91,9 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 ├─ lessons.md · MVP Build plan · CLAUDE.md
 ```
 
-**Why two root layouts (no shared `app/layout.tsx`):** the admin uses Tailwind (whose `@tailwind base` Preflight is a global reset) and the public site has its own hand-written reset. Route groups `(public)`/`(admin)`, each owning its `<html>/<body>` and importing only its own CSS, make Next code-split the CSS so Preflight never loads on public routes (verified: public HTML links only the public-token chunk, Tailwind lives in a separate chunk). It also forces a full page reload on any public↔admin navigation, sidestecking React's "stylesheets not removed on soft-nav" bug — safe here anyway since nothing `<Link>`s across the boundary. Tradeoff accepted: no custom global `app/not-found.tsx` (needs a root layout under this structure), so genuinely-unmatched URLs get Next's default 404; bad article/category slugs still get the branded in-group 404. **Publish→live: ISR** (`revalidate=60`) — new/edited articles appear within ~1 min with no rebuild.
+**Why two root layouts (no shared `app/layout.tsx`):** both groups now use Tailwind (the front-end redesign moved the public site onto it — its hand-written reset is gone, Preflight is the reset on both sides). The split still earns its keep: each group owns its `<html>/<body>` and imports only its own CSS, so the two palettes and font stacks can't leak into each other, and any public↔admin navigation is a full page reload — sidestepping React's "stylesheets not removed on soft-nav" bug, and safe anyway since nothing `<Link>`s across the boundary. Tradeoff accepted: no custom global `app/not-found.tsx` (needs a root layout under this structure), so genuinely-unmatched URLs get Next's default 404; bad article/category slugs still get the branded in-group 404. **Publish→live: ISR** (`revalidate=60`) — new/edited articles appear within ~1 min with no rebuild.
+
+**Do not use framer-motion's `AnimatePresence` on public components.** Verified in this repo (framer-motion 12.43 + React 18 + Next 14): exiting children animate to `opacity: 0` but are never unmounted. On the mobile nav that left a `fixed inset-0` node swallowing every click on the page; on the hero carousel it would stack each past slide over the live one. All public motion is **enter-only** — `{cond && <motion.div initial animate />}`, no `exit`. See the comments in `components/public/MobileNav.tsx`.
 
 **Not ported from Astro-Psyche Lab (Session 1 scope call):** Testimonials, Events, Leads (CRM), Analytics dashboard, Engagement — all astrology-coaching-business-specific, no equivalent in the magazine model. The **service price management** and **content-generation tools** (repurpose, inspiration, transits, video-editor, photoshop — AWS Bedrock-backed) named in the golden rules above are **not in this repo at all yet**; `config/flags.ts` reserves the booleans, but the actual code stays in the source fork until a post-MVP session ports and reveals it one by one. If that reading is wrong, redirect — it was the leanest interpretation of the Session 1 checklist, not a locked-in architecture call.
 

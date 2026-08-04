@@ -19,15 +19,19 @@ export interface FrameSpec {
   height: number;
 }
 
-// Real fixed heights from app/(public)/public.css; widths are either the
-// real fixed max-width (--maxread: 40rem = 640px, for the two hero-shaped
-// frames) or an illustrative stand-in for the fluid-width grid frames
-// (their real width varies by breakpoint/column count regardless).
-export const ARTICLE_HERO_FRAME: FrameSpec = { label: "Cabecera", width: 640, height: 380 };
-export const ARTICLE_CARD_FRAME: FrameSpec = { label: "Tarjeta", width: 300, height: 172 };
-export const ARTICLE_FEATURE_FRAME: FrameSpec = { label: "Destacado", width: 300, height: 210 };
-export const SERVICE_CARD_FRAME: FrameSpec = { label: "Tarjeta", width: 300, height: 172 };
-export const SERVICE_HERO_FRAME: FrameSpec = { label: "Detalle", width: 640, height: 360 };
+// Aspect ratios mirror the real public frames post-redesign; the pixel values
+// are just an illustrative size at that ratio, since every frame is now
+// fluid-width (aspect-ratio boxes rather than fixed heights). Keep these in
+// sync when a public frame's ratio changes, or the admin's focal preview
+// stops predicting what readers actually see.
+//   hero band  → aspect-[2/1]  (articulos/[slug], servicios/[slug])
+//   slideshow  → aspect-[16/9] (HeroSlideshow, home)
+//   card       → aspect-[4/3]  (ArticleCard) / aspect-[16/9] (ServiceCard)
+export const ARTICLE_HERO_FRAME: FrameSpec = { label: "Cabecera", width: 640, height: 320 };
+export const ARTICLE_CARD_FRAME: FrameSpec = { label: "Tarjeta", width: 300, height: 225 };
+export const ARTICLE_FEATURE_FRAME: FrameSpec = { label: "Portada", width: 400, height: 225 };
+export const SERVICE_CARD_FRAME: FrameSpec = { label: "Tarjeta", width: 320, height: 180 };
+export const SERVICE_HERO_FRAME: FrameSpec = { label: "Detalle", width: 640, height: 320 };
 
 function clampPercent(value: number | null | undefined): number {
   if (value == null || Number.isNaN(value)) return DEFAULT_FOCAL.focalX;

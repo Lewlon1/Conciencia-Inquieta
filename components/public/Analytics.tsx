@@ -163,17 +163,32 @@ export default function Analytics() {
       )}
 
       {showBanner && (
-        <div id="consent-banner" className="consent-banner">
-          <p>
+        <div
+          id="consent-banner"
+          className="on-dark fixed inset-x-4 bottom-4 z-[100] mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-4 rounded-3xl bg-black p-5 shadow-2xl"
+        >
+          <p className="min-w-[220px] flex-1 text-sm leading-relaxed text-white/70">
             Usamos analítica sin cookies para entender qué leéis. Con tu permiso,
             también usamos el Píxel de Meta para medir campañas — no se activa
-            hasta que aceptes. <a href="/cookies">Más info</a>.
+            hasta que aceptes.{" "}
+            <a href="/cookies" className="text-ci-orange underline">
+              Más info
+            </a>
+            .
           </p>
-          <div className="consent-actions">
-            <button className="btn-line" type="button" onClick={reject}>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={reject}
+              className="rounded-full border-2 border-white/30 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:border-white"
+            >
               Rechazar
             </button>
-            <button className="btn-amber" type="button" onClick={accept}>
+            <button
+              type="button"
+              onClick={accept}
+              className="rounded-full bg-ci-orange px-5 py-2.5 text-sm font-bold text-ci-ink transition-colors hover:bg-ci-purple"
+            >
               Aceptar
             </button>
           </div>

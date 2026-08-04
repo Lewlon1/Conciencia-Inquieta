@@ -4,8 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ArrowLeft } from "lucide-react";
 import FocalImage from "@/components/public/FocalImage";
 import ServiceBookingForm from "@/components/public/ServiceBookingForm";
+import PageHero from "@/components/public/PageHero";
 import { getPublishedServices, getServiceBySlug } from "@/lib/content";
 import { pageMetadata, SITE_URL, SITE_NAME } from "@/lib/seo";
 
@@ -64,59 +66,72 @@ export default async function ServicePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
 
-      <div className="wrap page-intro">
-        <div className="kicker">
-          <Link href="/servicios">Servicios</Link>
+      <PageHero kicker="Servicios" title={service.title} lead={service.summary}>
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          {service.price_text && (
+            <span className="rounded-full bg-ci-orange px-5 py-2 font-display font-bold text-ci-ink">
+              {service.price_text}
+            </span>
+          )}
+          <a
+            href="#reservar"
+            data-event="cta_click"
+            data-cta="service_hero_reservar"
+            className="rounded-full bg-ci-purple px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-ci-ink transition-colors hover:bg-white"
+          >
+            Solicitar reserva
+          </a>
         </div>
-        <h1>{service.title}</h1>
-        {service.summary && <p>{service.summary}</p>}
-        {service.price_text && (
-          <div className="price-line">{service.price_text}</div>
+      </PageHero>
+
+      {cover && (
+        <div className="bg-black">
+          <div className="mx-auto aspect-[16/9] max-w-5xl overflow-hidden md:aspect-[2/1]">
+            <FocalImage
+              src={cover}
+              alt={service.image_alt || service.title}
+              focalX={service.focal_x}
+              focalY={service.focal_y}
+              focalZoom={service.focal_zoom}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="mx-auto max-w-[var(--maxread)] px-6 py-16 md:px-8">
+        {rest.length > 0 && (
+          <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {rest.map((url, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${url}-${i}`}
+                src={url}
+                alt={service.image_alt || service.title}
+                className="aspect-[4/3] w-full rounded-2xl object-cover"
+              />
+            ))}
+          </div>
+        )}
+
+        {service.description && (
+          <div className="prose">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {service.description}
+            </ReactMarkdown>
+          </div>
         )}
       </div>
 
-      <div className="wrap section">
-        <div className="service-detail">
-          {cover && (
-            <div className="ph service-hero">
-              <FocalImage
-                src={cover}
-                alt={service.image_alt || service.title}
-                focalX={service.focal_x}
-                focalY={service.focal_y}
-                focalZoom={service.focal_zoom}
-              />
-            </div>
-          )}
-
-          {rest.length > 0 && (
-            <div className="service-gallery">
-              {rest.map((url, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={`${url}-${i}`}
-                  src={url}
-                  alt={service.image_alt || service.title}
-                />
-              ))}
-            </div>
-          )}
-
-          {service.description && (
-            <div className="prose">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {service.description}
-              </ReactMarkdown>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="wrap section">
-        <div className="service-book" id="reservar">
-          <div className="kicker">Reserva</div>
-          <h2>Solicita este servicio</h2>
-          <p className="service-book-lead">
+      <section id="reservar" className="bg-ci-purple/25 px-6 py-20 md:px-8">
+        <div className="mx-auto max-w-[var(--maxread)] rounded-3xl bg-white p-8 md:p-10">
+          <span className="mb-3 inline-block text-xs font-bold uppercase tracking-wider text-ci-orange">
+            Reserva
+          </span>
+          <h2 className="mb-3 font-heading text-3xl font-bold leading-tight tracking-tight text-ci-ink md:text-4xl">
+            Solicita este servicio
+          </h2>
+          <p className="mb-8 max-w-xl text-ci-ink/70">
             Déjanos tu nombre, email y teléfono y Marie te contactará para
             concretar los detalles. Sin compromiso.
           </p>
@@ -128,6 +143,16 @@ export default async function ServicePage({
             />
           </Suspense>
         </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-6 py-12 md:px-8">
+        <Link
+          href="/servicios"
+          className="inline-flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-ci-ink transition-all hover:gap-3"
+        >
+          <ArrowLeft className="h-4 w-4 text-ci-orange" aria-hidden="true" />
+          Todos los servicios
+        </Link>
       </div>
     </>
   );

@@ -359,3 +359,44 @@ Marie hasn't used MailerLite, so signups now land in Supabase and she views/expo
 
 ### Next step
 - Re-enable path when Marie's ready: import the CSV into MailerLite, set `mailerliteSync: true` + `MAILERLITE_*`, restore the MailerLite line in `privacidad`.
+
+---
+
+## Session 9 — 2026-08-04 — Public front-end redesign (Base44 design ported to Next.js)
+
+Lewis supplied a complete design as a Vite/React SPA (react-router-dom, `base44.entities.Article.list()`, Base44 CDN assets). **None of it runs in this repo** — it was ported, not dropped in. Chosen scope: full port of all 13 public routes, new brand tokens adopted, all 9 CI categories kept.
+
+### What changed
+- **Brand tokens replaced.** Cream `#fff9f1` → white, aubergine `#382a44` → black `#000`, ink `#2b2434` → `#180a29`; Fraunces/Newsreader/Inter → **Clash Display** (Fontshare) / **Syne** / **Plus Jakarta Sans** (Google). Purple + marigold unchanged. Registered in `tailwind.config.ts` as `colors.ci.*` so `hover:`/`md:`/`/70` variants generate (the source design used inline `style` + JS `onMouseEnter` for every hover — replaced with real CSS hovers). `CLAUDE.md` "Brand tokens" updated to match.
+- **Public group moved onto Tailwind.** `app/(public)/public.css` rewritten: `@tailwind` directives + `:root` tokens + `.font-heading/.font-display/.font-body` overrides + `.marquee-track` + a hand-written `.prose` for react-markdown output. The 361-line bespoke reset/component sheet is gone; Preflight is now the reset on both sides. Two root layouts stay (still isolates the two palettes + forces a full reload across the boundary).
+- **Shell rebuilt.** `Sidebar` (black 72px rail, hover/focus-expand to 280px, lucide icons, all 9 categories, Únete CTA) + new `MobileNav` (black masthead + full-screen drawer, `md:hidden`) replacing `Topbar`/`NavOverlay`; `MarqueeFooter` replacing `Footer`. Deleted: `Topbar`, `NavOverlay`, `Footer`, `LatestCarousel`.
+- **New components:** `HeroSlideshow`, `ArticleBrowser` (filter bar), `CategoryCluster`, `PageHero` (the repeated black masthead), `formStyles.ts`. Rewritten: `ArticleCard`, `ServiceCard`, `SubscribeForm`, `ContactForm`, `ServiceBookingForm`, `SecondaryChannelButton`, `QuestionTicker`, `Analytics` (consent banner only). All 13 routes rewritten.
+- **`lib/categoryStyle.ts` generalised** from 6 invented topics to CI's 9 real categories, keyed by **slug** not display name (a rename can no longer silently drop a category to the fallback). Each gets its own card geometry + placeholder gradient.
+- **`lib/focalImage.ts` frame specs retuned** to the new aspect-ratio boxes (cards 4:3, hero bands 2:1) so the admin's focal preview still predicts what readers see.
+- **`getPublicAuthors()` added** to `lib/content.ts` — filters out bios starting with "TODO".
+
+### Deliberately NOT ported (the design would have shipped these as-is)
+- **Fabricated content.** "+120k lectores" and four invented journalists (Elena Mariscal, Diego Ferrer, Lucía Aramburu, Marcos Quintana). The stat block became a real CI claim ("Sin dueños ni anunciantes"); the team grid is now driven by the `authors` table and renders nothing until there are real bios.
+- **Dead forms.** The design's subscribe input had no handler and its Servicios drawer "submitted" via `setTimeout`. Both replaced with the existing real endpoints (`/api/suscribir`, `/api/contacto`, `/api/reservar`); the floating "Consulta Inquieta" button now links to `/contacto`.
+- **Index-only links.** Every `ArticleCard`/hero CTA in the design pointed at `/articulos` — there was no article-detail route at all. All cards link to real slugs; `articulos/[slug]` keeps ISR, JSON-LD, markdown, `ArticleTracker`, related.
+- **Footer social icons** (`href="#"`) dropped rather than restyled — dead links that look live are worse than none. lucide v1.28 also no longer ships brand marks, so article share buttons use a plain X glyph, a typographic "f", and generic icons, each with an `sr-only` label.
+
+### Decisions (flag if wrong)
+- **[Certain] No `AnimatePresence` on public components.** framer-motion 12.43 + React 18 + Next 14: exiting children animate to `opacity: 0` but never unmount. Caught on the mobile drawer — a closed menu left a `fixed inset-0` node that swallowed every click on the page (`elementFromPoint` at the viewport centre resolved *inside* the closed drawer). Same trap would have stacked hero slides. All public motion is now **enter-only**. Noted in `CLAUDE.md`.
+- **[Likely] The Artículos filter/search box was built** despite "no on-site search" in the golden rules. It filters an already-fetched client-side array — no index, no query endpoint, no round-trip — so it reads as a filter, not search. Removable by deleting the `<input>` block + `search` state in `ArticleBrowser.tsx`; say the word.
+- **[Likely] `QuestionTicker` kept** (restyled black/orange) though the design has no equivalent — those questions are Marie's copy, not template filler.
+- **[Certain] Admin untouched.** New colours are namespaced under `ci.*`; the public font overrides live in `public.css`, which admin never loads. Verified `/admin/login` still ships its own Fraunces + `admin-theme`.
+
+### Verified
+`npx tsc --noEmit` clean · `npm run build` clean, all 13 routes prerendered · all 12 public routes 200 + zero legacy classes remaining · bad slug → branded in-group 404 · Clash Display/Syne/Plus Jakarta Sans all load and `.font-heading` correctly beats the admin's config value · filter/search/empty-state cycle · mobile drawer opens + fully unmounts via X and Escape, scroll lock restored, no horizontal overflow · rail expands 72→280 and collapses with no stranded nodes · no console or hydration errors.
+
+### Blockers — need Lewis
+- **Bad data, not a bug:** the only published article (`mundial-2026`) has a **Google search results URL** in `featured_image_url`, so it renders as a broken image in the hero. Re-upload a real image via the admin.
+- Not visually re-checked at every breakpoint — the Browser pane went blank mid-session (screenshots returned white while the DOM was verifiably correct), so later checks were DOM/computed-style based. Worth a human eyeball on staging.
+
+### Follow-up fixes (same session)
+- **Unstyled page in the browser** — not a code bug: `next dev` and `next build` share `.next/`, so running `npm run build` while the dev server is up wipes the chunks the running dev process still references. Every stylesheet then 500s and you get raw HTML. **Don't build while dev is running**; if it happens, stop dev, `rm -rf .next`, restart.
+- **Fat orange bar under the category chips** — the `::-webkit-scrollbar-thumb` rule in `public.css` is intended for the page scrollbar but paints every overflow container, and the chip strips overflow (1357px into 976px), producing a solid 16px orange horizontal scrollbar. Added a `.no-scrollbar` utility and applied it to the strips in `ArticleBrowser.tsx` and `categoria/[slug]`; they still scroll by swipe and by tabbing through the chips.
+
+### Next step
+- Deploy to staging and eyeball; replace the broken article image; decide whether the Artículos search box stays.

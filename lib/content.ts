@@ -1,5 +1,25 @@
 import { getPublicSupabase } from "@/lib/supabase/public";
-import type { ArticleWithRelations, Category, Service } from "@/types";
+import type { ArticleWithRelations, Author, Category, Service } from "@/types";
+
+/**
+ * Bylines for the "Las mentes detrás" grid on /sobre-nosotras.
+ *
+ * Migration 0003 seeds a placeholder author whose bio literally starts with
+ * "TODO:" so the article editor has something selectable. Those are filtered
+ * out here — a public page must never surface a placeholder as if it were a
+ * real person. An author only appears once they have a genuine bio.
+ */
+export async function getPublicAuthors(): Promise<Author[]> {
+  const { data, error } = await getPublicSupabase()
+    .from("authors")
+    .select("*")
+    .order("name")
+    .returns<Author[]>();
+  if (error) throw error;
+  return (data ?? []).filter(
+    (a) => a.bio && !a.bio.trim().toUpperCase().startsWith("TODO")
+  );
+}
 
 export async function getCategories(): Promise<Category[]> {
   const { data, error } = await getPublicSupabase()

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+import PageHero from "@/components/public/PageHero";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -11,19 +13,24 @@ export const metadata: Metadata = pageMetadata({
 export default function CookiesPage() {
   return (
     <>
-      <div className="wrap page-intro">
-        <div className="kicker">Legal</div>
-        <h1>Cookies</h1>
-        <p>Última actualización: pendiente de fecha de publicación.</p>
-      </div>
-      <div className="wrap section">
-        <div className="note" style={{ marginBottom: 28 }}>
-          <span>⚠️</span>
-          <div>
-            <b>Plantilla, no asesoría legal.</b> Revisar antes de publicar en
-            producción — ver la nota en{" "}
-            <Link href="/privacidad">Aviso legal y privacidad</Link>.
-          </div>
+      <PageHero
+        kicker="Legal"
+        title="Cookies"
+        lead="Última actualización: pendiente de fecha de publicación."
+      />
+      <div className="mx-auto max-w-[var(--maxread)] px-6 py-16 md:px-8">
+        <div className="mb-10 flex items-start gap-3 rounded-2xl bg-ci-orange/20 px-5 py-4 text-sm text-ci-ink/80">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>
+            <b className="font-bold text-ci-ink">
+              Plantilla, no asesoría legal.
+            </b>{" "}
+            Revisar antes de publicar en producción — ver la nota en{" "}
+            <Link href="/privacidad" className="underline">
+              Aviso legal y privacidad
+            </Link>
+            .
+          </p>
         </div>
 
         <div className="prose">
