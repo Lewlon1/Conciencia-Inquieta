@@ -1,3 +1,9 @@
+// Decorative infinite marquee of CI's own editorial questions. Kept from the
+// pre-redesign site — this is Marie's copy, not template filler — but restyled
+// into the new black/orange language and reusing the same .marquee-track
+// utility as the footer wordmark. Duplicated once so the loop wraps seamlessly
+// at translateX(-50%).
+
 const TICKER_PROMPTS = [
   "¿Quién cuida a quienes cuidan?",
   "¿De qué no se habla en las noticias?",
@@ -7,16 +13,30 @@ const TICKER_PROMPTS = [
   "¿Qué voces faltan en esta conversación?",
 ];
 
-// Decorative infinite marquee — duplicated once so the 34s loop (see
-// .ticker-row in public.css) wraps seamlessly at translateX(-50%).
-export default function QuestionTicker() {
-  const prompts = [...TICKER_PROMPTS, ...TICKER_PROMPTS];
+function Row() {
   return (
-    <div className="ticker" aria-hidden="true">
-      <div className="ticker-row">
-        {prompts.map((prompt, i) => (
-          <span key={i}>{prompt}</span>
-        ))}
+    <span className="inline-flex whitespace-nowrap">
+      {TICKER_PROMPTS.map((prompt, i) => (
+        <span
+          key={i}
+          className="font-display text-base font-bold text-white after:px-6 after:text-ci-orange after:content-['•']"
+        >
+          {prompt}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export default function QuestionTicker() {
+  return (
+    <div
+      className="overflow-hidden border-y border-white/10 bg-black py-4"
+      aria-hidden="true"
+    >
+      <div className="marquee-track">
+        <Row />
+        <Row />
       </div>
     </div>
   );

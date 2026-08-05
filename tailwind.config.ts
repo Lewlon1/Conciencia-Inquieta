@@ -40,6 +40,16 @@ const config: Config = {
         cardCream: "#F5EDD4",
         cardBorder: "#B8A070",
         ink: "#1A1A1A",
+        /* CI brand — the live public palette. Namespaced under `ci` so it can
+           never collide with the legacy/admin swatches above, and registered
+           HERE (not just as plain classes in public.css) so variants like
+           hover:bg-ci-orange and text-ci-ink/70 actually generate. */
+        ci: {
+          purple: "#e9c6e9", // hsl(300 45% 85%)
+          orange: "#fabb5c", // hsl(36 94% 67%)
+          ink: "#180a29", // hsl(267 61% 10%)
+          black: "#000000",
+        },
         // Editorial Cosmic palette — public homepage redesign
         ed: {
           paper: "var(--ed-paper)",

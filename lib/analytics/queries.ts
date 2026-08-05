@@ -17,6 +17,7 @@ export type ArticleRow = {
   scroll75: number;
   signups: number;
 };
+export type PageRow = { path: string; views: number; visitors: number };
 
 export interface AnalyticsSummary {
   kpis: Kpis;
@@ -26,6 +27,7 @@ export interface AnalyticsSummary {
   sources: VisitorSource[];
   trend: TrendPoint[];
   articles: ArticleRow[];
+  pages: PageRow[];
 }
 
 export const EMPTY_SUMMARY: AnalyticsSummary = {
@@ -36,6 +38,7 @@ export const EMPTY_SUMMARY: AnalyticsSummary = {
   sources: [],
   trend: [],
   articles: [],
+  pages: [],
 };
 
 export const RANGES = [7, 30, 90] as const;

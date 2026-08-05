@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import ContactForm from "@/components/public/ContactForm";
+import PageHero from "@/components/public/PageHero";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -13,19 +14,20 @@ export const metadata: Metadata = pageMetadata({
 export default function ContactoPage() {
   return (
     <>
-      <div className="wrap page-intro">
-        <div className="kicker">Hablemos</div>
-        <h1>Contacto</h1>
-        <p>
-          ¿Una idea, una colaboración, una historia que merece ser contada?
-          Escríbenos.
-        </p>
-      </div>
-      <div className="wrap section">
+      <PageHero
+        kicker="Hablemos"
+        title={
+          <>
+            Cuéntanos tu <span className="text-ci-orange">inquietud</span>
+          </>
+        }
+        lead="¿Una idea, una colaboración, una historia que merece ser contada? Escríbenos."
+      />
+      <section className="mx-auto max-w-7xl px-6 py-20 md:px-8">
         <Suspense fallback={null}>
           <ContactForm />
         </Suspense>
-      </div>
+      </section>
     </>
   );
 }

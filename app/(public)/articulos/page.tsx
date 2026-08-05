@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import ArticleCard from "@/components/public/ArticleCard";
+import PageHero from "@/components/public/PageHero";
+import ArticleBrowser from "@/components/public/ArticleBrowser";
 import { getPublishedArticles, getCategories } from "@/lib/content";
 import { pageMetadata } from "@/lib/seo";
 
@@ -20,43 +21,16 @@ export default async function ArticulosPage() {
 
   return (
     <>
-      <div className="wrap page-intro">
-        <div className="kicker">Archivo</div>
-        <h1>Artículos</h1>
-        <p>
-          Verdad con contexto, memoria y humanidad. Filtra por las temáticas que
-          nos atraviesan.
-        </p>
-      </div>
-      <div className="wrap section">
-        <div className="chips">
-          <a className="chip active" href="/articulos">
-            Todas
-          </a>
-          {categories.map((c) => (
-            <a key={c.id} className="chip" href={`/categoria/${c.slug}`}>
-              {c.name}
-            </a>
-          ))}
-        </div>
-        {articles.length > 0 ? (
-          <div className="grid">
-            {articles.map((a) => (
-              <ArticleCard key={a.id} article={a} />
-            ))}
-          </div>
-        ) : (
-          <p
-            style={{
-              color: "var(--muted)",
-              fontFamily: "var(--read)",
-              fontStyle: "italic",
-            }}
-          >
-            Todavía no hay artículos publicados.
-          </p>
-        )}
-      </div>
+      <PageHero
+        kicker="Archivo editorial"
+        title={
+          <>
+            Artí<span className="text-ci-orange">culos</span>
+          </>
+        }
+        lead="Explora por tema. Cada cluster es una isla flotante de ideas."
+      />
+      <ArticleBrowser articles={articles} categories={categories} />
     </>
   );
 }

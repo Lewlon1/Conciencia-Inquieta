@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Clock, MessageCircle, Mail } from "lucide-react";
 import ArticleCard from "@/components/public/ArticleCard";
 import FocalImage from "@/components/public/FocalImage";
 import SubscribeForm from "@/components/public/SubscribeForm";
@@ -53,11 +55,12 @@ export default async function ArticlePage({
   if (!article) notFound();
 
   // generateStaticParams returns only slugs, so re-fetch the full list here to
-  // recompute related (Astro passed article+related as props).
+  // recompute related.
   const all = await getPublishedArticles();
   const related = getRelatedArticles(article, all);
 
   const catName = article.category?.name ?? "";
+  const catSlug = article.category?.slug ?? null;
   const authorName = article.author?.name ?? "Redacción";
   const authorInitials = authorName
     .split(" ")
@@ -69,6 +72,49 @@ export default async function ArticlePage({
   const canonical = new URL(`/articulos/${article.slug}`, SITE_URL).toString();
   const shareText = encodeURIComponent(article.title);
   const shareUrl = encodeURIComponent(canonical);
+
+  // lucide-react v1 no longer ships brand marks, and inventing approximate
+  // brand paths from memory is worse than not using them — so X and Facebook
+  // get plain typographic marks and the rest use generic icons. Every button
+  // carries an sr-only label naming the destination.
+  const shareLinks = [
+    {
+      label: "Compartir en X",
+      href: `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,
+      glyph: (
+        <svg
+          viewBox="0 0 24 24"
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M5 5 19 19M19 5 5 19" />
+        </svg>
+      ),
+    },
+    {
+      label: "Compartir en Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
+      glyph: (
+        <span aria-hidden="true" className="font-heading text-lg font-bold leading-none">
+          f
+        </span>
+      ),
+    },
+    {
+      label: "Compartir en WhatsApp",
+      href: `https://wa.me/?text=${shareText}%20${shareUrl}`,
+      glyph: <MessageCircle className="h-4 w-4" aria-hidden="true" />,
+    },
+    {
+      label: "Compartir por email",
+      href: `mailto:?subject=${shareText}&body=${shareUrl}`,
+      glyph: <Mail className="h-4 w-4" aria-hidden="true" />,
+    },
+  ];
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -84,7 +130,7 @@ export default async function ArticlePage({
       name: SITE_NAME,
       logo: {
         "@type": "ImageObject",
-        url: new URL("/favicon.svg", SITE_URL).toString(),
+        url: new URL("/conciencia-logo.png", SITE_URL).toString(),
       },
     },
     mainEntityOfPage: canonical,
@@ -99,64 +145,76 @@ export default async function ArticlePage({
       />
       <ArticleTracker slug={article.slug} />
 
-      <div className="wrap">
-        <article className="article">
-          <div className="eyebrow">
-            {catName && <span className="cat">{catName}</span>}
-            <span style={{ fontSize: ".8rem", color: "var(--muted)" }}>
-              {formatDate(article.published_at)} · {article.reading_time_min} min
-              de lectura
-            </span>
-          </div>
-          <h1>{article.title}</h1>
-          {article.subtitle && <p className="deck">{article.subtitle}</p>}
-
-          <div className="byline">
-            <div className="byavatar">{authorInitials}</div>
-            <div className="bm">
-              <b>{authorName}</b>
-              <br />
-              <span>Redacción · Conciencia Inquieta</span>
+      <article>
+        {/* Black masthead */}
+        <header className="on-dark relative overflow-hidden bg-black px-6 pb-16 pt-14 md:px-8 md:pb-20 md:pt-16">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 top-24 block h-1 w-72 -rotate-[25deg] bg-ci-orange"
+          />
+          <div className="relative z-10 mx-auto max-w-[var(--maxread)]">
+            <div className="mb-6 flex flex-wrap items-center gap-2">
+              {catName && (
+                <Link
+                  href={`/categoria/${catSlug}`}
+                  className="rounded-full bg-ci-purple px-3 py-1 text-xs font-bold uppercase tracking-wider text-ci-ink transition-colors hover:bg-ci-orange"
+                >
+                  {catName}
+                </Link>
+              )}
+              <span className="text-xs text-white/50">
+                {formatDate(article.published_at)}
+              </span>
+              {article.reading_time_min && (
+                <span className="flex items-center gap-1 text-xs text-white/50">
+                  <Clock className="h-3 w-3" aria-hidden="true" />
+                  {article.reading_time_min} min de lectura
+                </span>
+              )}
             </div>
-            <div className="share">
-              <a
-                href={`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Compartir en X"
-              >
-                ✕
-              </a>
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Compartir en Facebook"
-              >
-                f
-              </a>
-              <a
-                href={`https://wa.me/?text=${shareText}%20${shareUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Compartir en WhatsApp"
-              >
-                ✆
-              </a>
-              <a
-                href={`mailto:?subject=${shareText}&body=${shareUrl}`}
-                title="Compartir por email"
-              >
-                ✉
-              </a>
+
+            <h1 className="font-heading text-4xl font-bold leading-[1.02] tracking-tight text-white md:text-6xl">
+              {article.title}
+            </h1>
+
+            {article.subtitle && (
+              <p className="mt-6 text-xl leading-relaxed text-white/70">
+                {article.subtitle}
+              </p>
+            )}
+
+            <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-white/10 pt-6">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ci-purple font-heading font-bold text-ci-ink">
+                {authorInitials}
+              </span>
+              <span className="text-sm">
+                <span className="block font-bold text-white">{authorName}</span>
+                <span className="text-white/50">
+                  Redacción · Conciencia Inquieta
+                </span>
+              </span>
+              <div className="ml-auto flex gap-2">
+                {shareLinks.map(({ glyph, label, href }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={label}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-ci-orange hover:text-ci-ink"
+                  >
+                    {glyph}
+                    <span className="sr-only">{label}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
+        </header>
 
-          <div
-            className="ph hero-img"
-            data-cat={catName}
-            style={{ background: gradFor(catName) }}
-          >
+        {/* Featured image band */}
+        <div className="bg-black">
+          <div className="mx-auto aspect-[16/9] max-w-5xl overflow-hidden md:aspect-[2/1]">
             {article.featured_image_url ? (
               <FocalImage
                 src={article.featured_image_url}
@@ -164,62 +222,76 @@ export default async function ArticlePage({
                 focalX={article.focal_x}
                 focalY={article.focal_y}
                 focalZoom={article.focal_zoom}
+                className="h-full w-full object-cover"
               />
             ) : (
-              <span className="glyph">{glyphFor(catName)}</span>
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: gradFor(catSlug) }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="select-none font-heading text-[20vw] font-bold leading-none text-white/30"
+                >
+                  {glyphFor(catName)}
+                </span>
+              </div>
             )}
           </div>
+        </div>
 
-          <div className="prose">
+        {/* Body */}
+        <div className="mx-auto max-w-[var(--maxread)] px-6 py-16 md:px-8">
+          <div className="prose prose-article">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {article.content || ""}
             </ReactMarkdown>
           </div>
 
           {article.tags.length > 0 && (
-            <div className="tags">
+            <ul className="mt-12 flex flex-wrap gap-2">
               {article.tags.map((tag) => (
-                <span key={tag} className="tag">
-                  {tag}
-                </span>
+                <li
+                  key={tag}
+                  className="rounded-full bg-ci-purple/40 px-4 py-1.5 text-sm text-ci-ink"
+                >
+                  #{tag}
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </article>
-      </div>
+        </div>
+      </article>
 
-      <div className="wrap">
-        <div className="article" style={{ maxWidth: "var(--maxread)" }}>
-          <div className="subscribe" style={{ padding: 34 }}>
-            <div>
-              <h2 style={{ fontSize: "1.5rem" }}>¿Te ha hecho pensar?</h2>
-              <p>
-                Recibe lo nuevo directamente en tu correo, sin depender de ningún
-                algoritmo.
-              </p>
-            </div>
+      {/* End-of-article subscribe */}
+      <section className="bg-ci-purple px-6 py-20 md:px-8">
+        <div className="mx-auto max-w-[var(--maxread)] text-center">
+          <h2 className="mb-4 font-heading text-3xl font-bold leading-tight tracking-tight text-ci-ink md:text-4xl">
+            ¿Te ha hecho <span className="text-ci-orange">pensar</span>?
+          </h2>
+          <p className="mx-auto mb-8 max-w-xl text-ci-ink/70">
+            Recibe lo nuevo directamente en tu correo, sin depender de ningún
+            algoritmo.
+          </p>
+          <div className="mx-auto max-w-lg text-left">
             <Suspense fallback={null}>
-              <SubscribeForm source="end-of-article" dark />
+              <SubscribeForm source="end-of-article" variant="purple" />
             </Suspense>
           </div>
         </div>
-      </div>
+      </section>
 
       {related.length > 0 && (
-        <div className="wrap">
-          <div className="related">
-            <div className="shead">
-              <h2>
-                Seguir leyendo<span className="dot">.</span>
-              </h2>
-            </div>
-            <div className="grid">
-              {related.map((a) => (
-                <ArticleCard key={a.id} article={a} />
-              ))}
-            </div>
+        <section className="mx-auto max-w-7xl px-6 py-20 md:px-8">
+          <h2 className="mb-10 border-b-2 border-ci-ink/10 pb-4 font-display text-3xl font-extrabold tracking-tight text-ci-ink md:text-4xl">
+            Seguir leyendo
+          </h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {related.map((a, i) => (
+              <ArticleCard key={a.id} article={a} index={i} />
+            ))}
           </div>
-        </div>
+        </section>
       )}
     </>
   );
