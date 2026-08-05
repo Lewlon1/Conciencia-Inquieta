@@ -50,6 +50,9 @@ export default async function AnalyticsPage({
   const topArticles = summary.articles
     .slice(0, 8)
     .map((a) => ({ label: a.slug, value: a.reads }));
+  const topPages = summary.pages
+    .slice(0, 8)
+    .map((p) => ({ label: p.path === "/" ? "Inicio" : p.path, value: p.views }));
   const trend = fillDailySeries(summary.trend, range);
 
   return (
@@ -74,6 +77,13 @@ export default async function AnalyticsPage({
               />
             </Card>
           </div>
+          <Card title={t.analytics.topPagesTitle}>
+            <BarList
+              items={topPages}
+              color={CHART.primary}
+              emptyText={t.analytics.pagesEmpty}
+            />
+          </Card>
           <TrendChart points={trend} />
           <MailerliteCard stats={mlStats} periodSignups={summary.kpis.signups} />
         </div>

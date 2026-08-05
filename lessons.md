@@ -400,3 +400,22 @@ Lewis supplied a complete design as a Vite/React SPA (react-router-dom, `base44.
 
 ### Next step
 - Deploy to staging and eyeball; replace the broken article image; decide whether the Artículos search box stays.
+
+---
+
+## Session 10 — 2026-08-05 — Hero image resilience + analytics top-pages + ANALYTICS_SALT root cause
+
+Follow-up to Session 9's two open items: the `mundial-2026` broken hero image, and a Lewis question about why "Páginas vistas: 158" had no further breakdown anywhere in `/admin/analytics`.
+
+### What changed
+- **Hero image resilience** (`components/public/FocalImage.tsx`, `components/public/HeroSlideshow.tsx`): confirmed the Session 9 blocker's root cause by inspecting the live DOM — `mundial-2026`'s `featured_image_url` is a literal Google search-results URL, not an image, so the `<img>` fails to decode and the full-bleed hero (new in this redesign; the old `LatestCarousel` had no full-bleed image) rendered as a bare black band. `FocalImage` now accepts an `onError` prop; `HeroSlideshow` tracks per-slide `imageError` state (reset on slide change) and falls back to the existing category-gradient + glyph placeholder — same placeholder that already covered a `null` `featured_image_url`, now also covers a *broken* one. The bad data itself is still bad; this just stops it from blanking the page. **Still needs**: re-upload a real image for `mundial-2026` via `/admin`.
+- **Analytics "Páginas más vistas"** (`supabase/migrations/0013_analytics_top_pages.sql`, `lib/analytics/queries.ts`, `lib/admin/strings.ts`, `app/(admin)/admin/analytics/page.tsx`): `analytics_summary()` (migration 0011) captures `path` on every event but never aggregated it — the only existing breakdown (`articles`) counts a different event (`article_read`, article pages only), so home/category/service/static pages had zero visibility anywhere, and the "Páginas vistas" KPI tile had no drill-down. Added a `pages` CTE (grouped by `path`, `name = 'pageview'`, same shape/limit as `articles`) to the RPC, a `PageRow` type + `pages: []` in `EMPTY_SUMMARY`, and a new BarList card on the Resumen tab. **Not yet applied to the live project** — same standing MCP-wrong-project blocker as every migration since Session 1.
+- **Root-caused the flat funnel/trend chart** — this is the more important finding. `ANALYTICS_SALT` was flagged as a required env var back in Session 8 (`lessons.md` then, lines now at 296/307) and evidently never set. Without it, `app/api/track/route.ts` inserts every event with `visitor_hash: null`. `count(DISTINCT visitor_hash)` ignores NULLs, so every uniques-based metric — the Visitantes KPI, all three funnel steps, the trend chart's visitors line — reads 0, while `count(*)`-based metrics (Páginas vistas, Suscripciones, "por canal") read real numbers. Verified against the live dashboard: Visitantes únicos 0 / Páginas vistas 158 / Suscripciones 1 is the exact signature. The trend chart isn't actually broken code — zoom in and there's a real one-point signup spike (`count(*)`-based) around 9–10 jul; it just looks empty because the visitors series is permanently pinned at zero. **Not a code fix.**
+
+### Blockers — need Lewis (three items, ranked by how long they've been sitting)
+1. **Set `ANALYTICS_SALT`** in Vercel + `.env.local`, redeploy. Flagged in Session 8, still not done as of this session — every event recorded before this is set keeps a permanently-null hash, so uniques for the *past* won't backfill; only traffic after the salt is set will count. This is the fix for the "empty" funnel/trend chart, not any code change.
+2. **Apply `0013_analytics_top_pages.sql`** by hand in the Supabase SQL editor (`lfyerbxqfwjjftcpjzbv`) — same process as every prior migration. Once applied, "Páginas más vistas" populates immediately from pageviews already recorded (no new tracking needed).
+3. **Re-upload `mundial-2026`'s featured image** via `/admin` — the Session 9 blocker. No longer blanks the page, but the article still has no real cover image.
+
+### Next step
+- Lewis: the three items above, in that order (salt first — it's the one actually blocking useful data, not just a missing chart).

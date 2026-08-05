@@ -7,6 +7,7 @@ interface FocalImageProps {
   focalY?: number | null;
   focalZoom?: number | null;
   className?: string;
+  onError?: () => void;
 }
 
 // Drop-in replacement for a plain <img> inside a .ph/.hero-img/.service-hero
@@ -19,6 +20,7 @@ export default function FocalImage({
   focalY,
   focalZoom,
   className,
+  onError,
 }: FocalImageProps) {
   const { objectPosition, transform, transformOrigin } = computeFocalStyle(
     focalX,
@@ -32,6 +34,7 @@ export default function FocalImage({
       alt={alt}
       className={className}
       style={{ objectPosition, transform, transformOrigin }}
+      onError={onError}
     />
   );
 }

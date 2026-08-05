@@ -136,6 +136,9 @@ export const t = {
     // Sources
     sourcesTitle: "Suscripciones por canal",
     sourcesEmpty: "Aún sin suscripciones en este periodo.",
+    // Top pages
+    topPagesTitle: "Páginas más vistas",
+    pagesEmpty: "Aún no hay páginas vistas en este periodo.",
     // Trend
     trendTitle: "Visitantes y suscripciones por día",
     legendVisitors: "Visitantes",

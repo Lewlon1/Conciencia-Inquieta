@@ -33,6 +33,7 @@ export default function HeroSlideshow({
 }) {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const count = articles.length;
 
@@ -51,6 +52,13 @@ export default function HeroSlideshow({
     const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
   }, [paused, next, count]);
+
+  // A slide's image can fail to load (dead URL, or a non-image value stored
+  // in featured_image_url) independently of whether the field is populated —
+  // reset per slide so a bad image on one article doesn't blank future ones.
+  useEffect(() => {
+    setImageError(false);
+  }, [current]);
 
   if (count === 0) return null;
 
@@ -76,7 +84,7 @@ export default function HeroSlideshow({
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="absolute inset-0"
       >
-          {article.featured_image_url ? (
+          {article.featured_image_url && !imageError ? (
             <FocalImage
               src={article.featured_image_url}
               alt={article.featured_image_alt || ""}
@@ -84,6 +92,7 @@ export default function HeroSlideshow({
               focalY={article.focal_y}
               focalZoom={article.focal_zoom}
               className="h-full w-full object-cover"
+              onError={() => setImageError(true)}
             />
           ) : (
             <div
