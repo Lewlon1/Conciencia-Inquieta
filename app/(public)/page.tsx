@@ -65,9 +65,9 @@ export default async function HomePage() {
               La conciencia despierta
             </span>
             <h2 className="mb-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-6xl">
-              No practicamos la neutralidad.
+              Noticias que importan, conversaciones que faltan,
               <br />
-              Practicamos la <span className="text-ci-orange">verdad</span>.
+              reflexiones que <span className="text-ci-orange">sanan</span>.
             </h2>
             <p className="max-w-xl text-lg leading-relaxed text-ci-ink/70">
               Conciencia Inquieta es un diario digital autogestionado. Verdad con
@@ -163,8 +163,7 @@ export default async function HomePage() {
         </div>
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center md:px-8">
           <h2 className="mb-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-6xl">
-            ¿Tu mente no para de
-            <span className="block text-ci-orange">preguntar?</span>
+            ¿Tienes una <span className="text-ci-orange">conciencia inquieta</span>?
           </h2>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-ci-ink/70">
             Suscríbete y recibe lo nuevo directamente en tu correo, sin

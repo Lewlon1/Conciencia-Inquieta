@@ -39,8 +39,8 @@ export default function ServiceBookingForm({
           Solicitud enviada
         </p>
         <p className="mt-2 text-sm text-ci-ink/60">
-          Gracias por tu interés. Marie se pondrá en contacto contigo pronto para
-          concretar los detalles.
+          Gracias por tu interés. Maria Elisa se pondrá en contacto contigo
+          pronto para concretar los detalles.
         </p>
       </div>
     );
