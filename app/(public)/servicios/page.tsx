@@ -29,10 +29,11 @@ export default async function ServiciosPage() {
         kicker="Trabaja con nosotras"
         title={
           <>
-            De lectora a <span className="text-ci-orange">colaboradora</span>
+            Ponemos ideas en movimiento.{" "}
+            <span className="text-ci-orange">Trabajemos juntas</span>
           </>
         }
-        lead="Acompañamiento, colaboraciones y propuestas a medida. Elige lo que necesitas y cuéntanos: Marie se pondrá en contacto contigo."
+        lead="¿Tienes una idea? Nosotras te ayudamos a darle forma. Creación de contenido, asesoría, escritura, talleres y colaboraciones a medida. Cuéntanos qué necesitas y hablemos."
       />
 
       <section className="mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-24">

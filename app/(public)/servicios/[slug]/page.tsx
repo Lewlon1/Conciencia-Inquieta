@@ -132,8 +132,8 @@ export default async function ServicePage({
             Solicita este servicio
           </h2>
           <p className="mb-8 max-w-xl text-ci-ink/70">
-            Déjanos tu nombre, email y teléfono y Marie te contactará para
-            concretar los detalles. Sin compromiso.
+            Déjanos tu nombre, email y teléfono y Maria Elisa te contactará
+            para concretar los detalles. Sin compromiso.
           </p>
           <Suspense fallback={null}>
             <ServiceBookingForm
