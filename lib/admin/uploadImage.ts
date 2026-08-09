@@ -75,6 +75,24 @@ export function uploadArticleImage(
   return uploadImageToBucket(file, ARTICLE_BUCKET, opts);
 }
 
+/**
+ * Upload an author avatar for the /sobre-nosotras team grid.
+ *
+ * Reuses the article-images bucket on purpose: a dedicated bucket needs
+ * storage-schema DDL applied by hand in the Supabase dashboard (see the header
+ * of 0008_article_images_storage.sql) and would buy nothing — identical
+ * public-read / authenticated-write policies. Downscaled harder than an article
+ * image: the avatar renders at 112px, so 512px covers 3x DPR with room spare.
+ */
+export function uploadAuthorAvatar(
+  file: File
+): Promise<{ url: string; path: string }> {
+  return uploadImageToBucket(file, ARTICLE_BUCKET, {
+    maxWidth: 512,
+    quality: 0.85,
+  });
+}
+
 /** Upload a service offering image (service-images bucket). */
 export function uploadServiceImage(
   file: File,

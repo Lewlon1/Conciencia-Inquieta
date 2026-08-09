@@ -419,3 +419,38 @@ Follow-up to Session 9's two open items: the `mundial-2026` broken hero image, a
 
 ### Next step
 - Lewis: the three items above, in that order (salt first — it's the one actually blocking useful data, not just a missing chart).
+
+---
+
+## Session 11 — 2026-08-09 — Marie-managed bylines + half-managed taxonomy
+
+Question that started it: "how can Maria Elisa add a new category and change the author name?" Answer was **she can't** — neither `authors` nor `categories` had any admin surface; both were dropdowns fed from tables seeded in migration 0003. Built the two screens, with a deliberate asymmetry (below).
+
+### What changed
+- **`/admin/autores` — full CRUD** (`app/(admin)/admin/autores/{page,new/page,[id]/page}.tsx`, `components/admin/AuthorEditorForm.tsx`). Name, bio, avatar. Modelled directly on the `services` trio. Two things beyond plain CRUD:
+  - **Visibility badge.** `getPublicAuthors()` silently hides any author whose bio starts with "TODO", so the seeded `Marie` never appeared on `/sobre-nosotras` and nothing in the admin said why. The rule moved to `lib/authorVisibility.ts` (`isAuthorPublic`) and is now read by *both* the public filter and the admin badge/hint — they can't drift.
+  - **Delete guard.** `articles.author_id` has no `ON DELETE` (0004), so deleting a used byline throws a raw FK error. The form counts articles first and refuses in Spanish.
+- **`/admin/categorias` — rename + reorder ONLY** (`app/(admin)/admin/categorias/page.tsx`, `components/admin/CategoryListEditor.tsx`). No create, no delete, no slug editing; slug renders as read-only URL text. Save renumbers the **whole** set 1..N in one `upsert` — `sort_order` has no unique constraint, so partial updates are exactly how duplicate positions and non-deterministic public ordering appear. A static panel explains why there's no "New" button, so the screen doesn't read as half-built.
+- **`docs/categorias-runbook.md`** — the two-step create recipe (row + `STYLES` entry), blast radius, and the deliberate no-delete stance. Linked from `CLAUDE.md`.
+- `lib/admin/strings.ts`: new `authors` / `authorEditor` / `categories` blocks + `common.save`. `AdminNav` gained both links. `uploadAuthorAvatar()` added to `lib/admin/uploadImage.ts`.
+
+### Decisions (flag if wrong)
+- **[Certain] Categories are not self-serve, and can't cheaply be.** Card geometry lives in `lib/categoryStyle.ts` keyed by slug; a slug with no entry falls back to a generic card. Worse, the shapes are Tailwind arbitrary values (`rounded-tr-[80px]`) — Tailwind only compiles classes present *literally in source*, so shape can never be a free-form DB value. Self-serve creation would need a preset-key column + a reassign-on-delete flow; deferred as post-MVP.
+- **[Certain] Avatars reuse the `article-images` bucket.** A dedicated bucket needs storage DDL applied by hand in the dashboard (0008's header says so) for identical policies. Downscaled to 512px — the avatar renders at 112px.
+- **[Likely] Route naming stays mixed.** New screens are Spanish (`/admin/autores`, `/admin/categorias`) matching `reservas`/`suscriptores`, while `articles`/`services`/`messages` remain English. Consistency-by-recency, not a rename sweep.
+
+### Verified
+`npx tsc --noEmit` clean · `npm run build` clean, all four new routes present · PostgREST embedded-count syntax (`select=*,articles(count)`) confirmed against the live project — returns `[{count:n}]`, matching the types · `/sobre-nosotras` renders unchanged after the `content.ts` refactor, no console or server errors · `/admin/autores` correctly 307s to the login gate.
+
+### NOT verified — needs Lewis
+- **No admin UI was exercised.** `/admin/*` is behind Supabase Auth and I can't enter credentials, so create/edit/upload/delete-guard, the reorder + save round-trip, and the badge flip are all **unverified in the browser**. Type-checked and built only.
+- `npm run lint` is **not configured** — `next lint` drops into its interactive "How would you like to configure ESLint?" setup and exits. It has presumably never run in this repo. Type-checking via `tsc --noEmit` was used instead. Worth wiring up a config in a later session.
+
+### Findings (data, not code)
+- **All 4 articles have `author_id = null`** — nothing on the site is bylined, and Marie's row is currently deletable because the guard correctly counts zero. Assign authors once the real byline exists.
+- `authors` still holds exactly one row: `Marie`, placeholder bio. The rename is now hers to do in the UI.
+
+### Next step
+- Lewis: log in to `/admin/autores`, rename `Marie` → full name + a real bio (this is also the acceptance test), then assign bylines to the 4 articles. Note that a real bio makes her appear on `/sobre-nosotras` within ~60s.
+- Then `/admin/categorias`: reorder two sections, save, confirm the public sidebar order follows.
+- Still open from Session 10, untouched here: `ANALYTICS_SALT`, migration `0013`, `mundial-2026`'s image.
