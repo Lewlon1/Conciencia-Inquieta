@@ -454,3 +454,36 @@ Question that started it: "how can Maria Elisa add a new category and change the
 - Lewis: log in to `/admin/autores`, rename `Marie` → full name + a real bio (this is also the acceptance test), then assign bylines to the 4 articles. Note that a real bio makes her appear on `/sobre-nosotras` within ~60s.
 - Then `/admin/categorias`: reorder two sections, save, confirm the public sidebar order follows.
 - Still open from Session 10, untouched here: `ANALYTICS_SALT`, migration `0013`, `mundial-2026`'s image.
+
+---
+
+## Session 12 — 2026-08-09 — Roboto Black headlines, the Artículos fix, social links
+
+Three cosmetic requests from Marie over WhatsApp, all public-side. No schema, no admin, no migration.
+
+### What changed
+- **Roboto replaced Clash Display as the headline face** (`app/(public)/public.css`, `app/(public)/layout.tsx` + 8 component/page files). One token flip — `--font-heading` — carries the family; the Fontshare stylesheet and its preconnect are gone, and Roboto joins the existing Google `<link>` at `wght@700;900`. Roboto v51 is a **single variable font**: the 500/700/900 URLs return byte-identical files, so naming two weights costs one file.
+- **Weight is the part that wasn't free.** Marie chose Black 900, and every heading in the repo asked for `font-bold`. Changed `font-bold` → `font-black` on the **13** display-scale `.font-heading` elements; deliberately left the **6** small ones (author initials ×2, share-row "f", value-card number, category initial, slide counter) at 700, because 900 at label size clots. The rule is now written into `CLAUDE.md` Brand tokens so it isn't re-litigated.
+- **`/articulos` hero de-split** (`app/(public)/articulos/page.tsx`) — `Artí<span class="text-ci-orange">culos</span>` highlighted *culos*. Removing the span is the white version, since `PageHero`'s h1 already carries `text-white`; the fragment collapsed to `title="Artículos"`. **Scoped to this one title on purpose** — the plan briefly covered all ten splits, Lewis pulled it back to one.
+- **Social links** (`config/social.ts`, `components/public/BrandIcons.tsx`, footer, `/sobre-nosotras`, `/contacto`, Organization JSON-LD). Instagram, Facebook, `hola@concienciainquieta.es`.
+
+### Decisions (flag if wrong)
+- **[Likely] Full family swap, not a second display face.** `font-heading` *is* the "big editorial headline" role; adding Roboto alongside Clash Display would have put two display faces on the same page. Syne (`font-display`) untouched.
+- **[Certain] Instagram drawn, Facebook typographic.** lucide v1 has no brand marks and this repo already ruled that approximating a brand path from memory is worse than not drawing it (`articulos/[slug]/page.tsx:76-79`). Instagram's mark is plain geometry — roundrect, circle, corner dot — so it reproduces exactly with nothing recalled. Facebook's is a specific letterform; it reuses the share row's honest "f". No new dependency for two icons.
+- **[Certain] `config/social.ts`, not env vars.** These are public, stable, and belong in the diff. Contrast `SecondaryChannelButton`, which stays env-gated because WhatsApp-vs-Telegram is still an open decision.
+- **[Certain] Footer Mail pill now opens `mailto:`, not `/contacto`.** She asked for the email; `/contacto` is already two cells left in the same footer.
+
+### Verified
+`npx tsc --noEmit` clean · `next build` **compiles** and passes its type/lint phase clean · compiled public CSS contains `font-weight:900` (Tailwind only emits used classes, so this proves `font-black` is really applied), references Roboto, and has **zero** Clash Display / Fontshare references · all nine other split headlines confirmed intact by grep after the `/articulos` edit.
+
+### NOT verified — needs Lewis
+- **Nothing was rendered in a browser.** `next build` cannot get past "Collecting page data" in the Claude Code container: the egress allowlist blocks `lfyerbxqfwjjftcpjzbv.supabase.co`, and `next dev` is no better since the public layout calls `getCategories()` on every route. **Every visual claim in this session is inferred from source and compiled CSS, not seen.** First run on Lewis's machine or a Vercel preview should check, in order: the **footer marquee** (`text-[8vw]` at 900 — largest, heaviest type on the site, and both spans must carry the same class or the loop seams), the two oversized fallback glyphs, and the three footer pills.
+- Same egress policy blocks `api.fontshare.com`, so **no before/after against Clash Display was possible** — the weight was chosen off a Roboto-only mockup with the real font files embedded, compared against Marie's own screenshots.
+
+### Findings
+- **`tailwind.config.ts`'s `fontFamily` is stale and misleading** — `heading` maps to `var(--font-cormorant)` (Georgia fallback), which is never defined in the public group. Only `public.css`'s `@layer utilities` override keeps `.font-heading` off Georgia. Left alone this session because the admin reads that config, but it's a trap for the next person who greps for the heading font.
+
+### Next step
+- Lewis: preview deploy, then eyeball the footer marquee and the fallback glyphs at 900.
+- Ask Marie for the canonical Facebook page URL — the one in `config/social.ts` is the `/share/…?mibextid=` redirect she sent.
+- Still open from Sessions 10–11: `ANALYTICS_SALT`, migration `0013`, `mundial-2026`'s image, bylines on the 4 articles.
