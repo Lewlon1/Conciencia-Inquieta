@@ -26,10 +26,10 @@ export default function MarqueeFooter() {
         aria-hidden="true"
       >
         <div className="marquee-track">
-          <span className="whitespace-nowrap pr-8 font-heading text-[8vw] font-bold leading-none text-ci-purple/[0.06]">
+          <span className="whitespace-nowrap pr-8 font-heading text-[8vw] font-black leading-none text-ci-purple/[0.06]">
             {repeated}
           </span>
-          <span className="whitespace-nowrap pr-8 font-heading text-[8vw] font-bold leading-none text-ci-purple/[0.06]">
+          <span className="whitespace-nowrap pr-8 font-heading text-[8vw] font-black leading-none text-ci-purple/[0.06]">
             {repeated}
           </span>
         </div>

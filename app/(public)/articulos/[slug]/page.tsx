@@ -173,7 +173,7 @@ export default async function ArticlePage({
               )}
             </div>
 
-            <h1 className="font-heading text-4xl font-bold leading-[1.02] tracking-tight text-white md:text-6xl">
+            <h1 className="font-heading text-4xl font-black leading-[1.02] tracking-tight text-white md:text-6xl">
               {article.title}
             </h1>
 
@@ -231,7 +231,7 @@ export default async function ArticlePage({
               >
                 <span
                   aria-hidden="true"
-                  className="select-none font-heading text-[20vw] font-bold leading-none text-white/30"
+                  className="select-none font-heading text-[20vw] font-black leading-none text-white/30"
                 >
                   {glyphFor(catName)}
                 </span>
@@ -266,7 +266,7 @@ export default async function ArticlePage({
       {/* End-of-article subscribe */}
       <section className="bg-ci-purple px-6 py-20 md:px-8">
         <div className="mx-auto max-w-[var(--maxread)] text-center">
-          <h2 className="mb-4 font-heading text-3xl font-bold leading-tight tracking-tight text-ci-ink md:text-4xl">
+          <h2 className="mb-4 font-heading text-3xl font-black leading-tight tracking-tight text-ci-ink md:text-4xl">
             ¿Te ha hecho <span className="text-ci-orange">pensar</span>?
           </h2>
           <p className="mx-auto mb-8 max-w-xl text-ci-ink/70">

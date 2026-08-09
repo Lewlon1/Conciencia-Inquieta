@@ -2,9 +2,14 @@
    Ported from the approved CI design (Base44/Vite prototype) into Next.js.
 
    Palette: pastel purple #e9c6e9 · marigold #fabb5c · black #000 ·
-   ink hsl(267 61% 10%). Type: Clash Display (headings) · Syne (display) ·
+   ink hsl(267 61% 10%). Type: Roboto (headings) · Syne (display) ·
    Plus Jakarta Sans (body). These supersede the earlier cream/aubergine +
    Fraunces/Newsreader tokens — see CLAUDE.md "Brand tokens".
+
+   Roboto replaced Clash Display as the headline face at Marie's request
+   (Session 12). Display-scale headings are `font-heading font-black` (900);
+   the handful of SMALL font-heading uses — author initials, the share-row
+   "f", the value-card numbers — stay at font-bold, since 900 at 12px clots.
 
    This group now uses Tailwind (the admin already did). The two root layouts
    remain, so each group still ships only its own CSS chunk; the difference is
@@ -21,7 +26,7 @@
     --ci-purple: 300 45% 85%;
     --ci-orange: 36 94% 67%;
     --ci-ink: 267 61% 10%;
-    --font-heading: "Clash Display", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "Roboto", ui-sans-serif, system-ui, sans-serif;
     --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
     --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
     /* Width of the collapsed desktop nav rail — mirrored by Sidebar.tsx. */

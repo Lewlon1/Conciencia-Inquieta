@@ -156,7 +156,7 @@ export default async function SobreNosotrasPage() {
       {/* Subscribe */}
       <section className="bg-ci-purple px-6 py-24 md:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="mb-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-5xl">
+          <h2 className="mb-6 font-heading text-4xl font-black leading-[1.05] tracking-tight text-ci-ink md:text-5xl">
             Súmate a la conciencia{" "}
             <span className="text-ci-orange">colectiva</span>
           </h2>

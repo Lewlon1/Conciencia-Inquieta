@@ -101,7 +101,7 @@ export default function HeroSlideshow({
             >
               <span
                 aria-hidden="true"
-                className="select-none font-heading text-[28vw] font-bold leading-none text-white/25"
+                className="select-none font-heading text-[28vw] font-black leading-none text-white/25"
               >
                 {glyphFor(catName)}
               </span>
@@ -135,7 +135,7 @@ export default function HeroSlideshow({
                 </span>
               )}
             </div>
-            <h2 className="mb-4 font-heading text-3xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-5xl">
+            <h2 className="mb-4 font-heading text-3xl font-black leading-[1.05] tracking-tight text-ci-ink md:text-5xl">
               {article.title}
             </h2>
             {article.subtitle && (
