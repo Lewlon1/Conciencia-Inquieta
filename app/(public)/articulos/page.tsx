@@ -23,11 +23,10 @@ export default async function ArticulosPage() {
     <>
       <PageHero
         kicker="Archivo editorial"
-        title={
-          <>
-            Artí<span className="text-ci-orange">culos</span>
-          </>
-        }
+        // Deliberately NOT split into two colours like the other hero titles:
+        // marigold on "culos" reads as its own word. Marie's call. The other
+        // split headlines keep their accent.
+        title="Artículos"
         lead="Explora por tema. Cada cluster es una isla flotante de ideas."
       />
       <ArticleBrowser articles={articles} categories={categories} />
