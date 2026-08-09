@@ -1,13 +1,12 @@
 import { getPublicSupabase } from "@/lib/supabase/public";
+import { isAuthorPublic } from "@/lib/authorVisibility";
 import type { ArticleWithRelations, Author, Category, Service } from "@/types";
 
 /**
  * Bylines for the "Las mentes detrás" grid on /sobre-nosotras.
  *
- * Migration 0003 seeds a placeholder author whose bio literally starts with
- * "TODO:" so the article editor has something selectable. Those are filtered
- * out here — a public page must never surface a placeholder as if it were a
- * real person. An author only appears once they have a genuine bio.
+ * The placeholder-bio rule lives in lib/authorVisibility.ts so the admin's
+ * "Visible en la web" badge reads from the same predicate this filter applies.
  */
 export async function getPublicAuthors(): Promise<Author[]> {
   const { data, error } = await getPublicSupabase()
@@ -16,9 +15,7 @@ export async function getPublicAuthors(): Promise<Author[]> {
     .order("name")
     .returns<Author[]>();
   if (error) throw error;
-  return (data ?? []).filter(
-    (a) => a.bio && !a.bio.trim().toUpperCase().startsWith("TODO")
-  );
+  return (data ?? []).filter(isAuthorPublic);
 }
 
 export async function getCategories(): Promise<Category[]> {

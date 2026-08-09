@@ -36,6 +36,8 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 **Categories:** Derechos humanos · Política internacional · Latinoamérica · Feminismo · Cultura · Medioambiente · Movimientos sociales · Opinión · Música y artes.
 > The forked admin currently does **basic** article upload only. Session 2 extends it to the above.
 
+**Taxonomy is half self-serve, on purpose.** Marie renames and reorders categories at `/admin/categorias`; she cannot create, delete, or re-slug them. A category's card shape and gradient live in `lib/categoryStyle.ts` keyed by slug, and the shapes are Tailwind arbitrary values that only compile when present literally in source — so a new category is a DB row **plus** a code change. Recipe and blast radius: `docs/categorias-runbook.md`. Bylines are fully self-serve at `/admin/autores` (an author only reaches `/sobre-nosotras` once her bio doesn't start with "TODO" — `lib/authorVisibility.ts`).
+
 ## Brand tokens (CI's own — do NOT reuse Gabriela's design)
 - **Colours:** white canvas `#ffffff` · pastel purple `#e9c6e9` (`hsl(300 45% 85%)`) · marigold `#fabb5c` (`hsl(36 94% 67%)`) · black `#000000` (inverted sections) · ink `#180a29` (`hsl(267 61% 10%)`)
 - **Type:** Clash Display (headlines, via Fontshare) · Syne (display/section heads) · Plus Jakarta Sans (body + UI)

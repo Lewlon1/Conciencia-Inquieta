@@ -9,6 +9,10 @@ const navLinks = [
   { label: t.nav.dashboard, href: "/admin" },
   { label: t.nav.analytics, href: "/admin/analytics" },
   { label: t.nav.articles, href: "/admin/articles" },
+  { label: t.nav.authors, href: "/admin/autores" },
+  // Rename + reorder only. Creating a category needs a matching style entry in
+  // lib/categoryStyle.ts, so it stays a code change — see docs/categorias-runbook.md.
+  { label: t.nav.categories, href: "/admin/categorias" },
   // Magazine services showcase + booking requests. This is NOT the inherited
   // Astro-Psyche Lab "service price management" tool gated by
   // FLAGS.servicePriceManagement (that stays OFF, unported — see CLAUDE.md);
