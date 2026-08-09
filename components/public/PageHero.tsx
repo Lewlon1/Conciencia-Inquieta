@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 // The black page masthead the design repeats across every non-home route:
-// orange kicker, oversized Clash Display headline, optional lead, and the
+// orange kicker, oversized Roboto Black headline, optional lead, and the
 // diagonal rules. Server component — no motion, so it renders in the static
 // HTML and doesn't cost a hydration boundary on legal pages.
 
@@ -30,7 +30,7 @@ export default function PageHero({
         <span className="mb-4 inline-block text-sm font-bold uppercase tracking-wider text-ci-orange">
           {kicker}
         </span>
-        <h1 className="max-w-4xl font-heading text-5xl font-bold leading-[0.95] tracking-tight text-white md:text-7xl lg:text-8xl">
+        <h1 className="max-w-4xl font-heading text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl lg:text-8xl">
           {title}
         </h1>
         {lead && (

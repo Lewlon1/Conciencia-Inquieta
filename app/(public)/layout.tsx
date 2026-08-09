@@ -6,15 +6,18 @@ import MarqueeFooter from "@/components/public/MarqueeFooter";
 import Analytics from "@/components/public/Analytics";
 import { getCategories } from "@/lib/content";
 import { SITE_URL, SITE_NAME } from "@/lib/seo";
+import { SOCIAL } from "@/config/social";
 
 // Public root layout — its OWN <html>/<body>, indexable, imports only
 // public.css. There is no shared app/layout.tsx: each route group keeps its
 // own CSS chunk and a public<->admin navigation is a full page load, so the
 // two design systems can't bleed into each other.
 //
-// Fonts load via <link>: Syne and Plus Jakarta Sans from Google, Clash Display
-// from Fontshare (next/font has no Fontshare loader, so all three go the same
-// route rather than splitting the strategy).
+// Fonts load via <link>, all three from Google: Roboto (headlines, 700 for the
+// small font-heading uses + 900 for display sizes), Syne, Plus Jakarta Sans.
+// Roboto v51 ships as a single variable font, so naming two weights costs one
+// file, not two. Now that Fontshare is gone, next/font/google would work here
+// and would kill the render-blocking round trip — worth a later session.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -36,6 +39,9 @@ const organizationSchema = {
   logo: new URL("/conciencia-logo.png", SITE_URL).toString(),
   description:
     "Diario digital autogestionado: verdad con contexto, memoria y humanidad.",
+  email: SOCIAL.email,
+  // sameAs is how search engines tie these profiles to the organisation.
+  sameAs: [SOCIAL.instagram, SOCIAL.facebook],
 };
 
 export default async function PublicLayout({
@@ -47,13 +53,8 @@ export default async function PublicLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="preconnect" href="https://api.fontshare.com" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
         <script

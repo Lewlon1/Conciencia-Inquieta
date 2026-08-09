@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Scale, BookOpen, Users } from "lucide-react";
+import { Scale, BookOpen, Users, Mail } from "lucide-react";
 import PageHero from "@/components/public/PageHero";
 import SubscribeForm from "@/components/public/SubscribeForm";
+import { InstagramIcon, FacebookGlyph } from "@/components/public/BrandIcons";
+import { SOCIAL, MAILTO } from "@/config/social";
 import { getPublicAuthors } from "@/lib/content";
 import { pageMetadata } from "@/lib/seo";
 
@@ -18,6 +20,11 @@ export const metadata: Metadata = pageMetadata({
     "Conciencia Inquieta es un diario digital autogestionado que apuesta por la verdad con contexto, memoria y humanidad.",
   path: "/sobre-nosotras",
 });
+
+// Outline pill, matching SecondaryChannelButton's light variant — the site's
+// established style for an external CTA on a white surface.
+const SOCIAL_LINK =
+  "inline-flex items-center gap-2 rounded-full border-2 border-ci-ink/20 px-6 py-3 font-display text-sm font-bold uppercase tracking-wide text-ci-ink transition-colors hover:border-ci-orange hover:bg-ci-orange";
 
 const VALUES = [
   {
@@ -107,6 +114,41 @@ export default async function SobreNosotrasPage() {
         </div>
       </section>
 
+      {/* Síguenos — sits above the Team block so it still renders while
+          `authors` is empty (that section is conditional). */}
+      <section className="mx-auto max-w-4xl px-6 py-20 text-center md:px-8 md:py-24">
+        <h2 className="mb-4 font-display text-3xl font-extrabold tracking-tight text-ci-ink md:text-4xl">
+          Síguenos
+        </h2>
+        <p className="mx-auto mb-10 max-w-xl text-lg leading-relaxed text-ci-ink/60">
+          Publicamos a diario en redes y respondemos todos los correos.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <a
+            href={SOCIAL.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={SOCIAL_LINK}
+          >
+            <InstagramIcon className="h-5 w-5" />
+            Instagram
+          </a>
+          <a
+            href={SOCIAL.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={SOCIAL_LINK}
+          >
+            <FacebookGlyph className="text-xl" />
+            Facebook
+          </a>
+          <a href={MAILTO} className={`${SOCIAL_LINK} normal-case tracking-normal`}>
+            <Mail className="h-5 w-5" aria-hidden="true" />
+            {SOCIAL.email}
+          </a>
+        </div>
+      </section>
+
       {/* Team — only once there are real bios to show */}
       {authors.length > 0 && (
         <section className="mx-auto max-w-7xl px-6 py-24 md:px-8">
@@ -156,7 +198,7 @@ export default async function SobreNosotrasPage() {
       {/* Subscribe */}
       <section className="bg-ci-purple px-6 py-24 md:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="mb-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-5xl">
+          <h2 className="mb-6 font-heading text-4xl font-black leading-[1.05] tracking-tight text-ci-ink md:text-5xl">
             Súmate a la conciencia{" "}
             <span className="text-ci-orange">colectiva</span>
           </h2>

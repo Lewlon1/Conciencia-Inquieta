@@ -40,9 +40,10 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 
 ## Brand tokens (CI's own — do NOT reuse Gabriela's design)
 - **Colours:** white canvas `#ffffff` · pastel purple `#e9c6e9` (`hsl(300 45% 85%)`) · marigold `#fabb5c` (`hsl(36 94% 67%)`) · black `#000000` (inverted sections) · ink `#180a29` (`hsl(267 61% 10%)`)
-- **Type:** Clash Display (headlines, via Fontshare) · Syne (display/section heads) · Plus Jakarta Sans (body + UI)
+- **Type:** Roboto (headlines, via Google) · Syne (display/section heads) · Plus Jakarta Sans (body + UI)
 - Registered in `tailwind.config.ts` under `colors.ci.*` (`bg-ci-purple`, `text-ci-ink/70`, `hover:bg-ci-orange`); fonts as `.font-heading` / `.font-display` / `.font-body` utilities in `app/(public)/public.css`.
-- **Superseded (do not reintroduce on public pages):** cream `#fff9f1`, aubergine `#382a44`, ink `#2b2434`, and Fraunces/Newsreader/Inter. Purple and marigold survived the redesign unchanged. The admin still uses Fraunces/Newsreader in its editor preview and the legacy Tailwind swatches — that's deliberate, leave it.
+- **Headline weight is `font-black` (900), not `font-bold`.** Every display-scale `.font-heading` element pairs with `font-black`; the four small `.font-heading` uses (author initials ×2, the article share-row "f", the value-card number) and the two small marks (category initial, slide counter) stay at `font-bold` — 900 at label size clots. Roboto is loaded at 700 + 900 only.
+- **Superseded (do not reintroduce on public pages):** cream `#fff9f1`, aubergine `#382a44`, ink `#2b2434`, Fraunces/Newsreader/Inter, and **Clash Display** (the headline face until Session 12; Fontshare is no longer used at all). Purple and marigold survived both the redesign and the Roboto swap unchanged. The admin still uses Fraunces/Newsreader in its editor preview and the legacy Tailwind swatches — that's deliberate, leave it.
 - Reference: the approved CI design (the Base44 prototype ported in the front-end redesign).
 
 ## Workflow
@@ -64,7 +65,7 @@ A self-managed Spanish-language digital magazine. **MVP goal: turn visitors into
 /
 ├─ app/
 │  ├─ (public)/            # PUBLIC group — OWN <html>/<body>, indexable, imports public.css
-│  │  ├─ layout.tsx        # shell (Sidebar/MobileNav/MarqueeFooter/Analytics), Google+Fontshare <link>, metadataBase, Organization JSON-LD
+│  │  ├─ layout.tsx        # shell (Sidebar/MobileNav/MarqueeFooter/Analytics), Google Fonts <link>, metadataBase, Organization JSON-LD
 │  │  ├─ public.css        # Tailwind + CI brand tokens, .prose, marquee utility (Preflight is the reset)
 │  │  ├─ page.tsx          # home (ISR revalidate=60)
 │  │  ├─ articulos/{page, [slug]/page}   # [slug]: generateStaticParams + ISR + react-markdown + NewsArticle JSON-LD

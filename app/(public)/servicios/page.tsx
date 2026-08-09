@@ -65,7 +65,7 @@ export default async function ServiciosPage() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {PROCESS.map((step) => (
             <div key={step.num} className="text-center">
-              <span className="mb-2 block font-heading text-7xl font-bold text-ci-purple/60">
+              <span className="mb-2 block font-heading text-7xl font-black text-ci-purple/60">
                 {step.num}
               </span>
               <h3 className="mb-2 font-display text-xl font-bold text-ci-ink">

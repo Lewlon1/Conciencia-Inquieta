@@ -64,7 +64,7 @@ export default async function HomePage() {
               <Sparkles className="h-4 w-4 text-ci-orange" aria-hidden="true" />
               La conciencia despierta
             </span>
-            <h2 className="mb-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-6xl">
+            <h2 className="mb-6 font-heading text-4xl font-black leading-[1.05] tracking-tight text-ci-ink md:text-6xl">
               Noticias que importan, conversaciones que faltan,
               <br />
               reflexiones que <span className="text-ci-orange">sanan</span>.
@@ -162,7 +162,7 @@ export default async function HomePage() {
           <span className="absolute -right-10 top-40 block h-1 w-40 -rotate-45 bg-ci-ink/20" />
         </div>
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center md:px-8">
-          <h2 className="mb-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-ci-ink md:text-6xl">
+          <h2 className="mb-6 font-heading text-4xl font-black leading-[1.05] tracking-tight text-ci-ink md:text-6xl">
             ¿Tienes una <span className="text-ci-orange">conciencia inquieta</span>?
           </h2>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-ci-ink/70">

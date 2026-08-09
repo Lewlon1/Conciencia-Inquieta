@@ -128,7 +128,7 @@ export default async function ServicePage({
           <span className="mb-3 inline-block text-xs font-bold uppercase tracking-wider text-ci-orange">
             Reserva
           </span>
-          <h2 className="mb-3 font-heading text-3xl font-bold leading-tight tracking-tight text-ci-ink md:text-4xl">
+          <h2 className="mb-3 font-heading text-3xl font-black leading-tight tracking-tight text-ci-ink md:text-4xl">
             Solicita este servicio
           </h2>
           <p className="mb-8 max-w-xl text-ci-ink/70">

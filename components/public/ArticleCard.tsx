@@ -56,7 +56,7 @@ export default function ArticleCard({ article, index = 0 }: Props) {
               >
                 <span
                   aria-hidden="true"
-                  className={`-mr-3 -mt-10 select-none font-heading text-[7rem] font-bold leading-none ${
+                  className={`-mr-3 -mt-10 select-none font-heading text-[7rem] font-black leading-none ${
                     isDarkCategory(catSlug) ? "text-white/20" : "text-white/40"
                   }`}
                 >
