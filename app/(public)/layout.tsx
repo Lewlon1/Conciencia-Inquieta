@@ -6,6 +6,7 @@ import MarqueeFooter from "@/components/public/MarqueeFooter";
 import Analytics from "@/components/public/Analytics";
 import { getCategories } from "@/lib/content";
 import { SITE_URL, SITE_NAME } from "@/lib/seo";
+import { SOCIAL } from "@/config/social";
 
 // Public root layout — its OWN <html>/<body>, indexable, imports only
 // public.css. There is no shared app/layout.tsx: each route group keeps its
@@ -38,6 +39,9 @@ const organizationSchema = {
   logo: new URL("/conciencia-logo.png", SITE_URL).toString(),
   description:
     "Diario digital autogestionado: verdad con contexto, memoria y humanidad.",
+  email: SOCIAL.email,
+  // sameAs is how search engines tie these profiles to the organisation.
+  sameAs: [SOCIAL.instagram, SOCIAL.facebook],
 };
 
 export default async function PublicLayout({

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { SOCIAL, MAILTO } from "@/config/social";
+import { InstagramIcon, FacebookGlyph } from "@/components/public/BrandIcons";
 
 // Black footer with the oversized scrolling wordmark behind it. The newsletter
 // field is a real POST to /api/suscribir (no-JS-safe form action, same as the
@@ -11,9 +13,16 @@ import { Mail } from "lucide-react";
 const MARQUEE =
   "CONCIENCIA INQUIETA • NOTICIAS QUE IMPORTAN • CONVERSACIONES QUE FALTAN • REFLEXIONES QUE SANAN • ";
 
-// NOTE: the old footer carried Instagram/X/TikTok icons pointing at href="#".
-// They're gone rather than restyled — dead links that look live are worse than
-// no links. Add them back here as real <a>s once CI's accounts exist.
+// The social row below is the "add them back once CI's accounts exist" case
+// the old footer's placeholder icons were removed for — these are real
+// destinations from config/social.ts, not href="#". No X or TikTok: CI has
+// neither account, and that's still the rule.
+//
+// This footer renders inside the public layout, so it IS the "at the bottom of
+// every page" surface Marie asked for.
+
+const SOCIAL_PILL =
+  "flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-ci-orange hover:text-ci-ink";
 
 export default function MarqueeFooter() {
   const year = new Date().getFullYear();
@@ -127,14 +136,30 @@ export default function MarqueeFooter() {
           </form>
 
           <div className="mt-6 flex items-center gap-3">
-            <Link
-              href="/contacto"
-              title="Escríbenos"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-ci-orange hover:text-ci-ink"
+            <a
+              href={SOCIAL.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Instagram"
+              className={SOCIAL_PILL}
             >
+              <InstagramIcon className="h-4 w-4" />
+              <span className="sr-only">Síguenos en Instagram</span>
+            </a>
+            <a
+              href={SOCIAL.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Facebook"
+              className={SOCIAL_PILL}
+            >
+              <FacebookGlyph className="text-lg" />
+              <span className="sr-only">Síguenos en Facebook</span>
+            </a>
+            <a href={MAILTO} title={SOCIAL.email} className={SOCIAL_PILL}>
               <Mail className="h-4 w-4" aria-hidden="true" />
-              <span className="sr-only">Escríbenos</span>
-            </Link>
+              <span className="sr-only">Escríbenos a {SOCIAL.email}</span>
+            </a>
           </div>
         </div>
       </div>
