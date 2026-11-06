@@ -487,3 +487,26 @@ Three cosmetic requests from Marie over WhatsApp, all public-side. No schema, no
 - Lewis: preview deploy, then eyeball the footer marquee and the fallback glyphs at 900.
 - Ask Marie for the canonical Facebook page URL — the one in `config/social.ts` is the `/share/…?mibextid=` redirect she sent.
 - Still open from Sessions 10–11: `ANALYTICS_SALT`, migration `0013`, `mundial-2026`'s image, bylines on the 4 articles.
+
+---
+
+## Session — Paid-offer options for Marie (discussion only, no code)
+
+Lewis asked for help framing the paid-subscription offer before anything is built. **No code changed.** Options weighed: voluntary donations, paid newsletter, private discussion space, becoming an NGO/asociación.
+
+### Key points (flag if wrong)
+- **[Certain] The four aren't the same kind of thing.** Donations and a paid newsletter are revenue mechanisms; a private discussion space is a perk; an NGO/asociación is a legal wrapper that changes what the other three can be (grants, possibly tax-deductible giving). Decide the mechanism first, the wrapper second.
+- **[Certain] The audience is still tiny.** The last analytics check in this file read 1 subscription / 158 pageviews, and visitor uniques are unmeasured because `ANALYTICS_SALT` was never set. Small paid publications usually convert ~1–5% of a free list, so the signup count matters more than which offer gets picked.
+- **[Likely] For human-rights/activist journalism, the best fit is "membership without a paywall".** Content stays free and readers pay to support it (the elDiario.es socios / El Salto / La Marea pattern). A paywall works against the reach the mission needs.
+- **[Likely] Validate with a hosted link before building checkout.** Use a Stripe Payment Link, Ko-fi or Steady before building anything. Payments and accounts are still out of MVP scope (`CLAUDE.md`), and a hosted link tests willingness to pay with zero code.
+- **[Likely] NGO only if there's a non-editorial reason** (grants that need a legal entity, projects beyond the magazine). In Spain, tax-deductible donations under Ley 49/2002 need a fundación or an asociación declarada de utilidad pública, and that status needs about 2 years of activity first, so it's not a quick win.
+
+### Open questions for Marie (block the decision)
+- Country of tax residency (Spain vs LatAm changes the legal/tax picture).
+- Is the goal income, or covering costs while keeping reach?
+- How many hours a week she can give to members-only output (newsletter, community moderation).
+- What the money would pay for (contributors? her time? costs?).
+
+### Next step
+- Lewis: set `ANALYTICS_SALT` so there's a real audience baseline before any pricing decision.
+- If they go ahead: start with a hosted monthly-support link on `/unete` (a code change in `app/(public)/unete/page.tsx`, possibly `config/flags.ts` for a `supportLink` flag). That would be its own session.
