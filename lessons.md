@@ -510,3 +510,9 @@ Lewis asked for help framing the paid-subscription offer before anything is buil
 ### Next step
 - Lewis: set `ANALYTICS_SALT` so there's a real audience baseline before any pricing decision.
 - If they go ahead: start with a hosted monthly-support link on `/unete` (a code change in `app/(public)/unete/page.tsx`, possibly `config/flags.ts` for a `supportLink` flag). That would be its own session.
+
+### Follow-up: one-pager for Marie (doc, no code)
+- Wrote an English one-pager for Lewis to review before it goes to Marie: "Conciencia Inquieta: Why the Website, and How It Pays" (Claude Docs: https://claude.ai/artifact/KCfcgj52zgSJE1Mb6h2Mvv). It's private until Lewis shares it.
+- **Framing decision [Likely]:** donations are a 3-month *test*, not the model. The doc makes Marie choose the site's long-term purpose first (magazine / collective / organisation / professional platform), judged against what Instagram can't do (own the list, no algorithm on political posts, long-form, Google, archive, credibility, payments).
+- **Unverified claims in the doc to check before sending:** Meta's 2024 change that stopped recommending political content to non-followers by default (from memory, not fetched), the 1–5% free-to-paid conversion rule of thumb, and the "~50 members" threshold for a community, which is a judgment call.
+- The "20 supporters in 3 months" success line is a placeholder for Lewis and Marie to set.
